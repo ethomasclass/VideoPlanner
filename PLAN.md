@@ -12,7 +12,7 @@ to-do list.
 | What the repo shows | What the app needs |
 |---|---|
 | 20 long videos plus about 15 Shorts, each with runtime, chapters, word count, repo and branch, ending line | A **Video** record with those fields, seeded from `videos/README.md` |
-| The skill's phases: Packaging → Script → Content review → Pronunciation → Voice → Images → Scenes → Render → Feedback → Package → Classroom → Shorts, each ending at a checkpoint where you sign off | A **pipeline** with those exact phases and a "waiting on me" flag at each checkpoint |
+| The skill's phases: Packaging → Script → Content review → Pronunciation → Voice → Images → Scenes → Render → Feedback → Package → Shorts, each ending at a checkpoint where you sign off | A **pipeline** with those exact phases and a "waiting on me" flag at each checkpoint |
 | Series: Civil War (3), Reconstruction (3 parts), American West (4 episodes with a unit question and a Promise Ledger) | **Series** with an order, a unit question, and episodes that can be planned before they exist |
 | Timely releases: Black Sox for the World Series, Mummies and Halloween for spooky season, Candy Scare | **Release windows** on the calendar (World Series, Halloween, holidays, school units), each with a "start by" date worked back from the production time |
 | Thumbnails A/B/C, one marked ★; YouTube text with the 60-character title check; Test & Compare | **Packaging** on each video: concepts, the chosen one, title options, description, tags, title-length check |
@@ -25,10 +25,10 @@ to-do list.
 
 ## 2. The screens
 
-1. **Pipeline board** (the home page). One column per phase, one card per video in production. A card shows the thumbnail
+1. **Pipeline board.** One column per phase, one card per video in production. A card shows the thumbnail
    (or the ★ concept), the working title, the target release date, days left, and a coral dot when it is waiting on you.
    Drag a card to move it to the next phase; the move is logged with the date so the app learns how long each phase takes.
-2. **Release calendar.** Month and quarter views. Published videos, scheduled releases (with time), Shorts, and the release
+2. **Release calendar** (the home page). Month and quarter views, with the weekly cadence slots (section 5). Published videos, scheduled releases (with time), Shorts, and the release
    windows as shaded bands. A cadence line shows gaps ("nothing scheduled for 3 weeks"). Drag a video to reschedule.
 3. **Video page.** Everything for one video, in tabs:
    - *Overview:* titles (YouTube title vs. on-screen title), series and episode, phase, target date, runtime goal, repo path,
@@ -57,7 +57,7 @@ Video       id, kind (long | short), number, youtubeTitle, screenTitle, subtitle
             targetRelease, scheduledAt?, publishedAt?, youtubeId?, window?,
             runtimeGoal, runtime?, chapters?, words?, endingLine?,
             repo, branch, projectPath, handoffPath,
-            classroom (bool), quiet chapters (bool), tags[]
+            quiet chapters (bool), tags[]
 Packaging   videoId, concepts [{label, file, headline, chosen}], titles [{text, chosen}],
             description, chapters text, tags[]
 Checklist   videoId, items [{ruleId, done}]          (rules come from one shared list)
@@ -84,47 +84,88 @@ The app should look like the channel: the dark desk.
 
 ---
 
-## 5. Tech (recommended)
+## 5. Decisions (Oct 31, 2026)
 
-- **Vite + React + TypeScript**: the same language as the Remotion projects, so components and the palette carry over.
-- **Tailwind** with the palette as theme tokens; **dnd-kit** for dragging cards; a light calendar built in-house (the month
-  grid is simple, and an off-the-shelf calendar would fight the look).
-- **Data: a JSON file in this repo (`data/planner.json`) as the source of truth**, loaded and saved by the app:
-  - Claude video sessions can update it at the end of a phase ("move Diamond Hoax to Render, waiting on: go-ahead"),
-    the same way they write HANDOFF.md now.
-  - History and backup come free with git.
-  - Locally, `npm run dev` reads and writes the file through a tiny dev server; the hosted copy (GitHub Pages or Vercel) is
-    read-only at first.
-- **Later, if you want to edit from your phone:** move the data to Supabase (free tier) with sign-in for just you, keeping the
-  JSON export.
-- **Later still: YouTube Data API** (OAuth with your channel): pull published videos and stats, and set `publishAt` so
-  scheduling in the app schedules the upload on YouTube.
+- **Used on one PC only.** Runs locally (`npm run dev`, opens in the browser). No hosting, no sign-in, no Supabase.
+- **Purpose: your own schedule, plans and release calendar.** The calendar is the centre of the app; the pipeline board feeds it.
+- **Claude built in for ideas.**
+- **Upload automation as an option** (off until you connect your channel).
+- **No classroom or viewing-guide features.**
 
----
+### Cadence: one long video and three Shorts a week
 
-## 6. Build order
-
-| Step | Delivers | Size |
+| Day (default, editable) | Slot | What goes in it |
 |---|---|---|
-| 1 | Project setup, brand theme, the data file, **seed import** of all 20 videos, Shorts, the 3 series and the Diamond Hoax status from its HANDOFF | small |
-| 2 | **Pipeline board** with drag between phases, phase history, "waiting on me" | medium |
-| 3 | **Video page** (overview, production, notes) | medium |
-| 4 | **Release calendar** with windows, drag to reschedule, cadence gaps | medium |
-| 5 | Packaging tab (concepts with ★, title check), pre-publish checklist from the standing preferences | small |
-| 6 | Series page and ideas backlog | small |
-| 7 | Shorts tab and the 48-hour results log with reminders | small |
-| 8 | Hosting, then optionally Supabase and the YouTube API | later |
+| Tuesday | **Long video** | This week's video |
+| Thursday | **Short A** | The new video's strongest Short |
+| Saturday | **Short B** | Its second Short |
+| Monday | **Evergreen Short** | A Short from an older video, linked to that video |
 
-Steps 1–4 make a useful app on their own: you can see what's in production, what's waiting on you, and what's going out when.
+Thoughts on it:
+- **Three Shorts a week is a good number;** one long video a week is the hard part. Each video goes through about 12 phases with sign-offs,
+  so weekly only works with **three videos in production at once** at staggered phases (one being scripted, one being built, one
+  being rendered and packaged), plus a **buffer of two finished videos** before you commit to the schedule publicly. The app shows
+  the buffer ("2 weeks banked") and warns when it drops to zero.
+- **Evergreen Shorts are a free win:** 19 finished long videos are 19 weeks of Monday Shorts without starting anything new. The app
+  rotates through the back catalog (the video resurfaced longest ago comes next) and pulls seasonal ones to the front: the Halloween
+  and Mummies videos in October, World Series and Black Sox in October, Reconstruction in February.
+- **Build Shorts native, not cut down.** Your own results say so: *The Last Public Execution* (people first, no early text) kept
+  55% of viewers; the cut-down *Banned → Partner* kept 12%. The app's Short card asks for the opening frame and the first line.
+- **Series run on consecutive weeks** (American West Ep 2–4 on three Tuesdays in a row), and the calendar keeps them together when
+  you move one.
+- Days and times are settings. Pick them from YouTube Studio's "When your viewers are on YouTube" card.
 
----
+## 6. Claude for ideas
 
-## 7. Questions to settle before building
+A small local server calls the Claude API (Anthropic TypeScript SDK, Claude Opus 5.5, structured JSON output). It needs an
+Anthropic API key in `.env`; API use is billed separately from a Claude subscription and costs cents per brainstorm. Every request
+carries your channel context: the list of videos so far, the packaging rules (a question or paradox in 2–4 words, "would I click at
+11 PM?"), the script rules (hook first, no modern politicians), and what's already on the calendar.
 
-1. **Cadence goal:** how often do you want to release (one long video a week? every two weeks?) and how many Shorts per
-   long video? The calendar's gap warnings use this.
-2. **Where you'll use it:** only on your computer (the JSON-in-repo plan is enough), or also on your phone (needs Supabase
-   sooner)?
-3. **YouTube connection:** do you want the app to actually schedule uploads on YouTube, or only to plan them?
-4. **Classroom side:** should viewing guides and school units (e.g. the American West unit question) have their own view,
-   or is a "classroom" tag on each video enough?
+- **Brainstorm ideas:** "give me 10 ideas for November" (or for a theme, a season, or "like Diamond Hoax") → each idea has the
+  concept in one line, the hook, 3 titles, a thumbnail headline, why now (an anniversary or season), and whether archival images
+  are likely to exist. Save any to the backlog with one click.
+- **Anniversaries:** upcoming round-number anniversaries (100th, 150th…) of events that fit the channel, for timely slots.
+- **Title and thumbnail punch-up** for a video already in the pipeline.
+- **Short hooks** for an evergreen Short from an older video (from its script, if the project path is set).
+- **Fill the gaps:** looks at empty slots and the backlog and proposes what goes where. You accept or ignore each suggestion.
+
+## 7. Upload automation (optional)
+
+Through the YouTube Data API, after a one-time Google sign-in for your channel:
+
+1. On the video's page, **Upload** picks up the files the production session already makes: the master MP4 from `renders/`, the
+   ★ thumbnail, and the title, description, chapters and tags from `review/YouTube_description.md` (the app reads that file's
+   `## Title` / `## Description` blocks). Shorts use `renders/shorts/` and `review/Shorts.md`.
+2. It uploads the video as **private with a scheduled publish time** (the calendar slot), sets the thumbnail, and sets the
+   **altered-content flag** (your standing rule). YouTube then publishes it on time on its own.
+3. The video's page shows the YouTube link and status, and the calendar slot turns to "scheduled on YouTube".
+
+Before relying on it, know two things:
+- **One-time Google setup** (about 20 minutes, a walkthrough goes in the README): a Google Cloud project with the YouTube API turned
+  on and an OAuth client for a desktop app.
+- **YouTube locks uploads from unverified API projects to private.** Until the project passes YouTube's API audit (a form, free,
+  can take a few weeks), uploaded videos can't go public. So the first version uploads as private + scheduled and tells you if
+  YouTube has locked it; you can still switch it to scheduled in Studio by hand. Applying for the audit early removes this.
+- The free daily API quota covers this cadence comfortably.
+
+## 8. Tech
+
+- **Vite + React + TypeScript** for the app, and a small **Express** server in the same project (it runs the app, reads and writes
+  the data, holds the API keys, and does the uploads). One command: `npm run dev`.
+- **Data in `data/planner.json`**, committed to this repo, so Claude video sessions can update a video's phase at the end of a
+  session the same way they write HANDOFF.md, and git keeps the history.
+- Plain CSS with the channel palette as variables; the fonts are self-hosted from the style repo.
+- Settings and secrets (API keys, Google tokens) live in `.env` and `data/.secrets/`, both git-ignored.
+
+## 9. Build order
+
+| Step | Delivers |
+|---|---|
+| 1 | Setup, brand theme, data file, starting data (all videos, series, the projects in production), **release calendar with cadence slots**, assigning videos and Shorts to slots |
+| 2 | Pipeline board with phases, "waiting on", buffer count |
+| 3 | Video page (overview, packaging, notes, Shorts) |
+| 4 | Evergreen rotation and seasonal pull-forward; series kept together |
+| 5 | Claude: brainstorm, anniversaries, title punch-up, Short hooks, fill the gaps |
+| 6 | YouTube: connect the channel, scheduled upload of videos and Shorts, status back into the calendar |
+| 7 | Results: Shorts 48-hour log and stats pulled from YouTube |

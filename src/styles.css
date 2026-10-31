@@ -1,0 +1,170 @@
+/* Chunk History palette (from 15minhistorystyle/brand/palette.json). One job per colour:
+   teal = anything drawn or clickable, orange = titles only, coral = the one thing that needs you. */
+@font-face { font-family: 'Abril Fatface'; src: url('/fonts/AbrilFatface.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Nanum Pen Script'; src: url('/fonts/NanumPenScript.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('/fonts/IBMPlexMono.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Inter'; font-weight: 600; src: url('/fonts/Inter-600.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Inter'; font-weight: 800; src: url('/fonts/Inter-800.woff2') format('woff2'); font-display: swap; }
+
+:root {
+  --teal: #2fe0c4;
+  --orange: #ff9f1c;
+  --coral: #ff6f61;
+  --ink: #111111;
+  --bone: #ede7dc;
+  --cream: #f4efe6;
+  --desk: #16140f;
+  --desk-hi: #2a2620;
+  --desk-lo: #0d0c09;
+  --line: rgba(244, 239, 230, 0.12);
+  --muted: rgba(244, 239, 230, 0.55);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--cream);
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 63px, rgba(255, 255, 255, 0.04) 63px 64px),
+    radial-gradient(ellipse at 45% 40%, var(--desk-hi) 0%, var(--desk) 70%, var(--desk-lo) 100%) fixed;
+  min-height: 100vh;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--muted); }
+.hand { font-family: 'Nanum Pen Script', cursive; font-size: 24px; line-height: 1.05; color: var(--teal); margin: 6px 0; }
+.empty-note { font-family: 'Nanum Pen Script', cursive; font-size: 32px; color: var(--teal); text-align: center; margin-top: 30vh; }
+
+/* Titles: heavy serif caps on a torn strip of orange tape, tilted. */
+.tape {
+  display: inline-block;
+  font-family: 'Abril Fatface', serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--orange);
+  padding: 4px 18px 2px;
+  margin: 0;
+  transform: rotate(-2deg);
+  clip-path: polygon(0 8%, 3% 0, 22% 6%, 48% 0, 74% 5%, 97% 0, 100% 12%, 99% 88%, 100% 100%, 76% 94%, 51% 100%, 27% 95%, 2% 100%, 0 90%, 1% 50%);
+  font-size: 34px;
+  letter-spacing: 0.5px;
+}
+.dialog .tape { align-self: flex-start; }
+.window-bar { flex: 1 1 100%; height: 3px; border-radius: 2px; background: rgba(237, 231, 220, 0.14); }
+.tape.small { font-size: 17px; padding: 3px 12px 1px; margin-bottom: 10px; }
+
+/* ---- top bar ---- */
+.topbar { display: flex; align-items: center; gap: 28px; padding: 14px 28px; border-bottom: 1px solid var(--line); }
+.logo { height: 30px; }
+nav { display: flex; gap: 4px; }
+.tab { background: none; border: 0; padding: 6px 14px; border-radius: 6px; color: var(--muted); font-weight: 800; }
+.tab.active { color: var(--teal); box-shadow: inset 0 -2px 0 var(--teal); border-radius: 0; }
+.tab:disabled:not(.active) { opacity: 0.4; }
+.save-state { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--muted); }
+.save-state.error { color: var(--coral); }
+
+/* ---- layout ---- */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; padding: 24px 28px 40px; }
+
+/* ---- calendar ---- */
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.cal-nav { display: flex; gap: 6px; }
+.cal-nav button { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; }
+.cal-nav button:hover { border-color: var(--teal); color: var(--teal); }
+
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.dow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 0 6px 4px; }
+.day {
+  min-height: 128px;
+  background: rgba(13, 12, 9, 0.55);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.day.out { opacity: 0.35; }
+.day.past .chip { opacity: 0.6; }
+.day.today { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal) inset; }
+.day-top { display: flex; align-items: center; gap: 4px; min-height: 18px; flex-wrap: wrap; }
+.day-num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); margin-right: 2px; }
+.today .day-num { color: var(--teal); }
+.window {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--bone); background: rgba(237, 231, 220, 0.1); border-radius: 3px; padding: 1px 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+
+.chip {
+  text-align: left; border-radius: 4px; padding: 5px 7px; display: flex; flex-direction: column; gap: 2px;
+  border: 1px solid transparent; background: var(--desk-hi); width: 100%;
+}
+.chip-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.8px; color: var(--muted); }
+.chip-title { font-size: 12.5px; line-height: 1.2; overflow-wrap: anywhere; }
+.chip-phase { font-family: 'Nanum Pen Script', cursive; font-size: 17px; line-height: 0.9; color: var(--teal); }
+.chip:hover:not(:disabled) { border-color: var(--teal); }
+/* The week's long video is a cream card on the desk. */
+.chip.long { background: var(--cream); color: var(--ink); }
+.chip.long .chip-tag { color: rgba(17, 17, 17, 0.6); }
+.chip.long .chip-phase { color: #0f8f7c; }
+.chip.scheduled .chip-tag::before, .chip.published .chip-tag::before { content: '● '; color: var(--teal); }
+.chip.long.scheduled .chip-tag::before, .chip.long.published .chip-tag::before { color: #0f8f7c; }
+.chip.empty {
+  background: none; border: 1px dashed rgba(47, 224, 196, 0.35); color: rgba(47, 224, 196, 0.75);
+  font-family: 'Nanum Pen Script', cursive; font-size: 19px; line-height: 1; padding: 3px 7px;
+}
+.chip.empty:disabled { border-color: var(--line); color: var(--muted); opacity: 0.5; }
+.chip.empty.urgent { border-color: var(--coral); color: var(--coral); }
+.chip.ghost { background: none; border: 1px dashed var(--line); }
+.chip.ghost .chip-title { color: var(--muted); }
+.ghost-actions { display: flex; gap: 8px; margin-top: 2px; }
+.ghost-actions button {
+  background: none; border: 0; padding: 0; color: var(--teal);
+  font-family: 'Nanum Pen Script', cursive; font-size: 19px; line-height: 1;
+}
+.ghost-actions button:hover { text-decoration: underline; }
+
+/* ---- sidebar ---- */
+.sidebar { display: flex; flex-direction: column; gap: 26px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; background: rgba(13, 12, 9, 0.55); }
+.tile-num { font-family: 'Abril Fatface', serif; font-size: 40px; line-height: 1; }
+.tile small { color: var(--muted); font-size: 11px; line-height: 1.3; }
+.tile.alert { border-color: var(--coral); }
+.tile.alert .tile-num { color: var(--coral); }
+.list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.list li { display: flex; flex-direction: column; gap: 1px; font-size: 13.5px; }
+.list li b { font-weight: 600; }
+.list li small { color: var(--muted); font-size: 12px; }
+.list li small.unscheduled { color: var(--coral); }
+.list li:has(.dot) { display: block; }
+.list li:has(.dot) small { display: block; margin-left: 14px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--coral); margin-right: 2px; }
+.phase-pill { align-self: flex-start; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; color: var(--bone); }
+
+/* ---- dialog ---- */
+.backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: grid; place-items: center; z-index: 10; }
+.dialog { width: min(480px, 92vw); background: var(--desk); border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.dialog .mono { margin: -6px 0 0; }
+.field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.field > span { font-size: 12.5px; color: var(--muted); }
+.field input, .field select {
+  background: var(--desk-lo); color: var(--cream); border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 10px; font: inherit; font-weight: 600; color-scheme: dark;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--teal); }
+.hint { font-family: 'Nanum Pen Script', cursive; font-size: 19px; color: var(--teal); line-height: 1; }
+.row { display: flex; gap: 12px; }
+.actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.spacer { flex: 1; }
+.link { background: none; border: 0; color: var(--muted); padding: 8px 6px; }
+.link:hover { color: var(--cream); }
+.link.danger:hover { color: var(--coral); }
+.primary { background: var(--teal); color: var(--ink); border: 0; border-radius: 6px; padding: 8px 18px; font-weight: 800; }
+.primary:disabled { opacity: 0.4; }

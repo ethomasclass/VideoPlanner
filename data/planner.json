@@ -1,0 +1,553 @@
+{
+  "version": 1,
+  "settings": {
+    "cadence": [
+      {
+        "kind": "evergreen",
+        "label": "Evergreen Short",
+        "weekday": 1,
+        "time": "12:00"
+      },
+      {
+        "kind": "long",
+        "label": "Long video",
+        "weekday": 2,
+        "time": "15:00"
+      },
+      {
+        "kind": "shortA",
+        "label": "Short A",
+        "weekday": 4,
+        "time": "12:00"
+      },
+      {
+        "kind": "shortB",
+        "label": "Short B",
+        "weekday": 6,
+        "time": "12:00"
+      }
+    ],
+    "bufferTarget": 2,
+    "styleRepoPath": "../15minhistorystyle"
+  },
+  "series": [
+    {
+      "id": "civil-war",
+      "name": "Civil War"
+    },
+    {
+      "id": "reconstruction",
+      "name": "Reconstruction"
+    },
+    {
+      "id": "american-west",
+      "name": "The American West after the Civil War",
+      "unitQuestion": "To what extent did the United States fulfill its promises of freedom and opportunity after the Civil War?"
+    }
+  ],
+  "videos": [
+    {
+      "id": "the-war-nobody-won",
+      "kind": "long",
+      "number": 0,
+      "title": "The War Nobody Won",
+      "phase": "published",
+      "runtime": "14:23",
+      "chapters": 9,
+      "words": 2051,
+      "endingLine": "\"It changed how Americans saw themselves.\"",
+      "notes": "War of 1812; paper toy theater"
+    },
+    {
+      "id": "fix-everything",
+      "kind": "long",
+      "number": 1,
+      "title": "Fix Everything",
+      "subtitle": "America's Reform Era, 1820s–1850s",
+      "phase": "published",
+      "runtime": "17:02",
+      "chapters": 11,
+      "words": 3058,
+      "endingLine": "\"But that's a story for next time.\" (teases slavery splitting the country)"
+    },
+    {
+      "id": "the-man-who-couldn-t-sit-still",
+      "kind": "long",
+      "number": 2,
+      "title": "The Man Who Couldn't Sit Still",
+      "subtitle": "Ambrose Bierce, 1842–1914?",
+      "phase": "published",
+      "runtime": "10:44",
+      "chapters": 9,
+      "words": 1896,
+      "endingLine": "\"…as far as anyone can tell, he got there.\""
+    },
+    {
+      "id": "king-andrew",
+      "kind": "long",
+      "number": 3,
+      "title": "King Andrew",
+      "subtitle": "How the People's President Got a Crown, 1767–1845",
+      "phase": "published",
+      "runtime": "15:30",
+      "chapters": 11,
+      "words": 2757,
+      "endingLine": "\"…a word ready for that. / King.\"",
+      "seasons": [
+        "presidents"
+      ]
+    },
+    {
+      "id": "grip-tighter",
+      "kind": "long",
+      "number": 4,
+      "title": "Grip Tighter",
+      "subtitle": "Slavery and the Cotton South, 1790–1860",
+      "phase": "published",
+      "runtime": "17:24",
+      "chapters": 10,
+      "words": 2760,
+      "endingLine": "\"…the closer the whole country came to tearing apart.\"",
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "good-luck",
+      "kind": "long",
+      "number": 5,
+      "title": "Good Luck",
+      "subtitle": "How the Ouija board went from romantic to scary, 1886–1973",
+      "phase": "published",
+      "runtime": "9:48",
+      "chapters": 9,
+      "words": 1600,
+      "endingLine": "\"…that was up to whoever was holding it.\" + a 15 s end screen",
+      "seasons": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "say-it-ain-t-so",
+      "kind": "long",
+      "number": 6,
+      "title": "Say It Ain't So",
+      "subtitle": "Baseball's Gambling Problem Before the Black Sox, 1865–1921",
+      "phase": "published",
+      "runtime": "10:23",
+      "chapters": 8,
+      "words": 1709,
+      "projectPath": "projects/Black_Sox",
+      "endingLine": "\"…It's who's watching when they do.\" + subscribe line and a 12 s end screen. Plus 4 vertical Shorts",
+      "notes": "+ today",
+      "seasons": [
+        "world-series"
+      ]
+    },
+    {
+      "id": "the-exact-spot",
+      "kind": "long",
+      "number": 7,
+      "title": "The Exact Spot",
+      "subtitle": "Texas, the Mexican-American War, and the Question It Reopened, 1821–1848",
+      "phase": "published",
+      "runtime": "14:45",
+      "chapters": 10,
+      "words": 2485,
+      "projectPath": "projects/Mexican_American_War",
+      "endingLine": "\"It took about 13 years to work.\" + thank-you/subscribe line and a 15 s end screen"
+    },
+    {
+      "id": "dressed-to-kill",
+      "kind": "long",
+      "number": 8,
+      "title": "Dressed to Kill",
+      "subtitle": "How Arsenic Green Took Over the 1800s, 1775–1900",
+      "phase": "published",
+      "runtime": "9:40",
+      "chapters": 8,
+      "words": 1654,
+      "projectPath": "projects/Dressed_To_Kill",
+      "endingLine": "\"…The green never changed. What changed was who had to prove it was safe. William Morris called it witch fever. But this time, the witch was real.\" + subscribe line and a 13 s end screen",
+      "seasons": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "when-europe-ate-mummies",
+      "kind": "long",
+      "number": 9,
+      "title": "When Europe Ate Mummies",
+      "subtitle": "The Strange & Spooky History of Mummy Medicine",
+      "phase": "published",
+      "runtime": "8:53",
+      "chapters": 9,
+      "words": 1433,
+      "projectPath": "projects/Mummy_Medicine",
+      "endingLine": "Thanks and subscribe over the end screen. Plus 6 vertical Shorts",
+      "notes": "spooky season",
+      "seasons": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "the-balloon-war",
+      "kind": "long",
+      "number": 10,
+      "title": "The Balloon War",
+      "subtitle": "Fake Tanks, Paper Bombs, and D-Day, 1944–1945",
+      "phase": "published",
+      "runtime": "9:29",
+      "chapters": 7,
+      "words": 1599,
+      "projectPath": "projects/Balloon_War",
+      "endingLine": "\"…a war that arrived on paper balloons… ended with paper birds.\" + subscribe line and a 10 s end screen",
+      "notes": "+ 2023",
+      "seasons": [
+        "d-day"
+      ]
+    },
+    {
+      "id": "log-cabin",
+      "kind": "long",
+      "number": 11,
+      "title": "Log Cabin",
+      "subtitle": "How an Insult Won the White House",
+      "phase": "published",
+      "runtime": "7:45",
+      "chapters": 7,
+      "words": 1324,
+      "projectPath": "projects/Log_Cabin",
+      "endingLine": "\"…For 31 days.\"",
+      "notes": "1840",
+      "seasons": [
+        "election",
+        "presidents"
+      ]
+    },
+    {
+      "id": "in-their-own-words",
+      "kind": "long",
+      "number": 12,
+      "title": "In Their Own Words",
+      "subtitle": "Secession, Fort Sumter, and the Picnic at Bull Run",
+      "phase": "published",
+      "runtime": "10:01",
+      "chapters": 9,
+      "words": 1635,
+      "projectPath": "projects/In_Their_Own_Words",
+      "endingLine": "\"…Nobody knew yet what it would end.\"",
+      "notes": "Civil War series 1",
+      "seriesId": "civil-war",
+      "episode": 1,
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "landless-homeless-voteless",
+      "kind": "long",
+      "number": 13,
+      "title": "Landless, Homeless, Voteless",
+      "phase": "published",
+      "runtime": "13:08",
+      "chapters": 10,
+      "words": 2555,
+      "projectPath": "projects/Reconstruction/ep1",
+      "endingLine": "\"…sends a Black senator to Washington.\"",
+      "notes": "Reconstruction, Part 1",
+      "seriesId": "reconstruction",
+      "episode": 1,
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "bottom-rail-on-top",
+      "kind": "long",
+      "number": 14,
+      "title": "Bottom Rail on Top",
+      "phase": "published",
+      "runtime": "12:50",
+      "chapters": 10,
+      "words": 2242,
+      "projectPath": "projects/Reconstruction/ep2",
+      "endingLine": "\"Next time: the Klan, a crash, a bank, and a deal that ended it all.\"",
+      "notes": "Reconstruction, Part 2",
+      "seriesId": "reconstruction",
+      "episode": 2,
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "redemption",
+      "kind": "long",
+      "number": 15,
+      "title": "Redemption",
+      "phase": "published",
+      "runtime": "13:00",
+      "chapters": 10,
+      "words": 2139,
+      "projectPath": "projects/Reconstruction/ep3",
+      "endingLine": "\"…to start living up to it.\"",
+      "notes": "Reconstruction, Part 3",
+      "seriesId": "reconstruction",
+      "episode": 3,
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "forever-free",
+      "kind": "long",
+      "number": 16,
+      "title": "Forever Free",
+      "subtitle": "How a War for the Union Became a War for Freedom",
+      "phase": "published",
+      "runtime": "9:41",
+      "chapters": 8,
+      "words": 1589,
+      "projectPath": "projects/Forever_Free",
+      "endingLine": "\"…And the war still had to be won.\"",
+      "notes": "Civil War series 2",
+      "seriesId": "civil-war",
+      "episode": 2,
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "except",
+      "kind": "long",
+      "number": 17,
+      "title": "Except",
+      "subtitle": "How the Civil War Was Decided, and What It Left Open",
+      "phase": "published",
+      "runtime": "9:24",
+      "chapters": 8,
+      "words": 1540,
+      "projectPath": "projects/Except",
+      "endingLine": "\"…Except as a punishment for crime.\"",
+      "notes": "Civil War series 3",
+      "seriesId": "civil-war",
+      "episode": 3,
+      "seasons": [
+        "black-history"
+      ]
+    },
+    {
+      "id": "not-in-the-picture",
+      "kind": "long",
+      "number": 18,
+      "title": "Not in the Picture",
+      "subtitle": "Grant, the Railroad, and Who Built It",
+      "phase": "published",
+      "runtime": "15:59",
+      "chapters": 9,
+      "words": 2450,
+      "projectPath": "projects/American_West/ep1",
+      "endingLine": "\"…It involved about five million cows.\" (tees up Ep 2)",
+      "notes": "American West, Ep 1 of 4; the first video as Chunk History",
+      "seriesId": "american-west",
+      "episode": 1
+    },
+    {
+      "id": "trick-or-treating-was-a-bribe",
+      "kind": "long",
+      "number": 19,
+      "title": "Trick-or-Treating Was a Bribe",
+      "subtitle": "The Real History of Halloween",
+      "phase": "published",
+      "runtime": "11:57",
+      "chapters": 8,
+      "words": 1822,
+      "projectPath": "projects/Halloween_Bribe",
+      "endingLine": "\"…you might want to pay up.\" + thank-you over a 20 s end screen. Plus 2 vertical Shorts",
+      "notes": "Halloween, Ireland 1830s → today",
+      "seasons": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "diamond-hoax",
+      "kind": "long",
+      "number": 20,
+      "title": "They Fooled America's Richest Men",
+      "subtitle": "The Great Diamond Hoax of 1872 (on screen: PAID FOR DIRT)",
+      "phase": "render",
+      "runtime": "~15:45",
+      "chapters": 9,
+      "words": 2479,
+      "projectPath": "projects/Diamond_Hoax",
+      "waitingOn": [
+        {
+          "who": "suno",
+          "what": "8 new music cues (dh_salted_theme … dh_aftermath)"
+        },
+        {
+          "who": "me",
+          "what": "Go-ahead for the full render"
+        }
+      ],
+      "notes": "All 9 chapters built; only ch 1 rendered. Thumbnail H1 chosen. See HANDOFF.md."
+    },
+    {
+      "id": "cheaper-than-dirt",
+      "kind": "long",
+      "title": "Cheaper Than Dirt",
+      "subtitle": "Cattle, Gold, and the End of the Open Range",
+      "seriesId": "american-west",
+      "episode": 2,
+      "phase": "scenes",
+      "projectPath": "projects/American_West/ep2"
+    },
+    {
+      "id": "free-land",
+      "kind": "long",
+      "title": "Free Land",
+      "subtitle": "Homesteaders, Exodusters, and the Edge of the Rain",
+      "seriesId": "american-west",
+      "episode": 3,
+      "phase": "script",
+      "notes": "Outline ready: projects/American_West/EP3_PLAINS_FARMING_OUTLINE.md"
+    },
+    {
+      "id": "absolute-and-undisturbed",
+      "kind": "long",
+      "title": "Absolute and Undisturbed",
+      "subtitle": "The Plains Nations and the Promises on Paper",
+      "seriesId": "american-west",
+      "episode": 4,
+      "phase": "script",
+      "notes": "Outline ready: projects/American_West/EP4_PLAINS_NATIONS_OUTLINE.md"
+    },
+    {
+      "id": "short-the-last-public-execution",
+      "kind": "short",
+      "title": "The Last Public Execution",
+      "projectPath": "projects/Last_Public_Hanging",
+      "phase": "published"
+    },
+    {
+      "id": "short-rumpelstiltskin",
+      "kind": "short",
+      "title": "Rumpelstiltskin",
+      "projectPath": "projects/Rumpelstiltskin_Short",
+      "phase": "published"
+    },
+    {
+      "id": "short-world-series",
+      "kind": "short",
+      "title": "World Series",
+      "projectPath": "projects/World_Series_Short",
+      "phase": "published",
+      "seasons": [
+        "world-series"
+      ]
+    },
+    {
+      "id": "short-pledge-salute",
+      "kind": "short",
+      "title": "Pledge Salute",
+      "projectPath": "projects/Pledge_Salute_Short",
+      "phase": "published"
+    },
+    {
+      "id": "short-candy-scare",
+      "kind": "short",
+      "title": "Candy Scare",
+      "projectPath": "projects/Candy_Scare",
+      "phase": "published",
+      "seasons": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "short-the-last-time-america-was-debt-free",
+      "kind": "short",
+      "title": "The Last Time America Was Debt Free",
+      "projectPath": "projects/Last_Time_Debt_Free_Short",
+      "phase": "script"
+    },
+    {
+      "id": "short-recession-indicators",
+      "kind": "short",
+      "title": "Recession Indicators",
+      "projectPath": "projects/Recession_Indicators_Short",
+      "phase": "script"
+    },
+    {
+      "id": "short-trick-or-treat-was-a-bribe",
+      "kind": "short",
+      "title": "Trick or Treat Was a Bribe",
+      "parentId": "trick-or-treating-was-a-bribe",
+      "phase": "published",
+      "seasons": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "short-the-first-jack-o-lanterns-were-turnips",
+      "kind": "short",
+      "title": "The First Jack-o'-Lanterns Were Turnips",
+      "parentId": "trick-or-treating-was-a-bribe",
+      "phase": "published",
+      "seasons": [
+        "halloween"
+      ]
+    }
+  ],
+  "releases": [],
+  "windows": [
+    {
+      "id": "black-history",
+      "name": "Black History Month",
+      "start": "02-01",
+      "end": "02-28"
+    },
+    {
+      "id": "presidents",
+      "name": "Presidents' Day",
+      "start": "02-10",
+      "end": "02-20"
+    },
+    {
+      "id": "d-day",
+      "name": "D-Day anniversary",
+      "start": "05-30",
+      "end": "06-06"
+    },
+    {
+      "id": "july-4",
+      "name": "Fourth of July",
+      "start": "06-27",
+      "end": "07-04"
+    },
+    {
+      "id": "halloween",
+      "name": "Spooky season",
+      "start": "10-01",
+      "end": "10-31"
+    },
+    {
+      "id": "world-series",
+      "name": "World Series",
+      "start": "10-20",
+      "end": "11-03"
+    },
+    {
+      "id": "election",
+      "name": "Election Day",
+      "start": "11-01",
+      "end": "11-07"
+    },
+    {
+      "id": "thanksgiving",
+      "name": "Thanksgiving",
+      "start": "11-20",
+      "end": "11-28"
+    }
+  ],
+  "ideas": []
+}
