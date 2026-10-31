@@ -3,3 +3,5 @@ dist
 .env
 data/.secrets
 data/*.tmp
+.dev.vars
+.wrangler

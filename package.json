@@ -4,24 +4,24 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --ignore 'data/**' --ignore 'src/**' server/index.ts",
-    "start": "NODE_ENV=production tsx server/index.ts",
+    "dev": "vite build && concurrently -k -n api,web -c cyan,yellow \"wrangler pages dev --port 8788\" \"vite\"",
     "build": "vite build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p functions",
+    "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
-    "express": "^5.3.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
+    "@cloudflare/workers-types": "^5.20261031.1",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "tsx": "^4.23.15",
+    "concurrently": "^10.0.6",
     "typescript": "^7.0.2",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "wrangler": "^4.156.0"
   }
 }

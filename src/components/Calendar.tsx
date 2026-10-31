@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { CadenceSlot, Planner } from '../types.ts';
+import { STATUSES } from '../types.ts';
 import { MONTHS, addDays, fromISO, monthGrid, todayISO } from '../lib/dates.ts';
 import { releaseAt, slotsOn, suggestEvergreens, videoById, windowsOn, newId } from '../lib/schedule.ts';
 import SlotDialog from './SlotDialog.tsx';
@@ -82,8 +83,10 @@ export default function Calendar({ planner, update }: Props) {
                         {rel.status !== 'planned' && ` · ${rel.status.toUpperCase()}`}
                       </span>
                       <span className="chip-title">{title}</span>
-                      {video && video.phase !== 'published' && video.phase !== 'ready' && (
-                        <span className="chip-phase">in {video.phase}</span>
+                      {video && (video.status === 'idea' || video.status === 'in-progress') && (
+                        <span className="chip-phase">
+                          {STATUSES.find((s) => s.id === video.status)?.label.toLowerCase()}
+                        </span>
                       )}
                     </button>
                   );

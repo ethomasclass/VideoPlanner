@@ -1,31 +1,24 @@
 import type { Planner } from '../types.ts';
-import { PHASES } from '../types.ts';
+import { STATUSES } from '../types.ts';
 import { addDays, fmtShort, fromISO, todayISO } from '../lib/dates.ts';
-import { buffer, openLongSlots, videoById } from '../lib/schedule.ts';
+import { openLongSlots, unscheduled, videoById } from '../lib/schedule.ts';
 
-const phaseIndex = (id: string) => PHASES.findIndex((p) => p.id === id);
+const statusLabel = (id: string) => STATUSES.find((s) => s.id === id)?.label ?? id;
 
 export default function Sidebar({ planner }: { planner: Planner }) {
   const today = todayISO();
-  const banked = buffer(planner);
   const open = openLongSlots(planner, 6);
-  const target = planner.settings.bufferTarget;
+  const noDate = unscheduled(planner);
 
   const upNext = planner.releases
     .filter((r) => r.date >= today)
     .sort((a, b) => (a.date + (a.time ?? '')).localeCompare(b.date + (b.time ?? '')))
-    .slice(0, 5);
+    .slice(0, 6);
 
-  const inProduction = planner.videos
-    .filter((v) => v.kind === 'long' && v.phase !== 'published')
-    .sort((a, b) => phaseIndex(b.phase) - phaseIndex(a.phase));
+  const inProgress = planner.videos.filter((v) => v.kind === 'long' && (v.status === 'in-progress' || v.status === 'ready'));
   const releaseOf = (id: string) => planner.releases.find((r) => r.videoId === id);
 
-  const waitingOnMe = planner.videos.flatMap((v) =>
-    (v.waitingOn ?? []).filter((w) => w.who === 'me').map((w) => ({ video: v, what: w.what })),
-  );
-
-  // Release windows starting in the next 60 days (this year or next).
+  // Release windows that are on now or start in the next 60 days.
   const horizon = addDays(today, 60);
   const upcomingWindows = planner.windows
     .map((w) => {
@@ -41,31 +34,17 @@ export default function Sidebar({ planner }: { planner: Planner }) {
   return (
     <aside className="sidebar">
       <div className="tiles">
-        <div className={`tile${banked.length === 0 ? ' alert' : ''}`}>
-          <span className="tile-num">{banked.length}</span>
-          <span className="mono">WEEKS BANKED</span>
-          <small>target {target}: finished videos waiting for a slot</small>
-        </div>
         <div className={`tile${open.length > 0 ? ' alert' : ''}`}>
           <span className="tile-num">{open.length}</span>
           <span className="mono">OPEN LONG SLOTS</span>
           <small>in the next 6 weeks</small>
         </div>
+        <div className="tile">
+          <span className="tile-num">{noDate.length}</span>
+          <span className="mono">NO DATE YET</span>
+          <small>videos in progress or ready, not on the calendar</small>
+        </div>
       </div>
-
-      {waitingOnMe.length > 0 && (
-        <section>
-          <h3 className="tape small">Waiting on you</h3>
-          <ul className="list">
-            {waitingOnMe.map(({ video, what }, i) => (
-              <li key={i}>
-                <span className="dot" /> <b>{video.title}</b>
-                <small>{what}</small>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       <section>
         <h3 className="tape small">Up next</h3>
@@ -88,13 +67,13 @@ export default function Sidebar({ planner }: { planner: Planner }) {
       </section>
 
       <section>
-        <h3 className="tape small">In production</h3>
+        <h3 className="tape small">In progress</h3>
         <ul className="list">
-          {inProduction.map((v) => {
+          {inProgress.map((v) => {
             const r = releaseOf(v.id);
             return (
               <li key={v.id}>
-                <span className="phase-pill">{PHASES[phaseIndex(v.phase)]?.label}</span>
+                <span className="phase-pill">{statusLabel(v.status)}</span>
                 <b>{v.title}</b>
                 <small className={r ? '' : 'unscheduled'}>{r ? `out ${fmtShort(r.date)}` : 'no date yet'}</small>
               </li>

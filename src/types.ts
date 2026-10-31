@@ -1,19 +1,12 @@
 // Shared between the server and the app. data/planner.json follows this shape.
 
-export const PHASES = [
+export const STATUSES = [
   { id: 'idea', label: 'Idea' },
-  { id: 'packaging', label: 'Packaging' },
-  { id: 'script', label: 'Script' },
-  { id: 'voice', label: 'Voice' },
-  { id: 'images', label: 'Images' },
-  { id: 'scenes', label: 'Scenes' },
-  { id: 'render', label: 'Render' },
-  { id: 'feedback', label: 'Feedback' },
-  { id: 'package', label: 'Package' },
+  { id: 'in-progress', label: 'In progress' },
   { id: 'ready', label: 'Ready' },
   { id: 'published', label: 'Published' },
 ] as const;
-export type Phase = (typeof PHASES)[number]['id'];
+export type Status = (typeof STATUSES)[number]['id'];
 
 export type SlotKind = 'long' | 'shortA' | 'shortB' | 'evergreen';
 
@@ -26,19 +19,12 @@ export interface CadenceSlot {
 
 export interface Settings {
   cadence: CadenceSlot[];
-  bufferTarget: number; // finished long videos you want banked ahead
-  styleRepoPath: string; // local path to 15minhistorystyle, for project files
 }
 
 export interface Series {
   id: string;
   name: string;
   unitQuestion?: string;
-}
-
-export interface WaitingOn {
-  who: 'me' | 'claude' | 'suno' | 'gemini' | 'other';
-  what: string;
 }
 
 export interface Video {
@@ -50,15 +36,10 @@ export interface Video {
   seriesId?: string;
   episode?: number;
   parentId?: string; // Shorts: the long video it comes from
-  phase: Phase;
+  status: Status;
   runtime?: string;
-  chapters?: number;
-  words?: number;
-  projectPath?: string; // relative to the style repo
-  branch?: string;
-  endingLine?: string;
-  seasons?: string[]; // windows this video fits, e.g. ["halloween"]
-  waitingOn?: WaitingOn[];
+  projectPath?: string; // folder in the style repo, e.g. projects/Diamond_Hoax
+  seasons?: string[]; // release windows this video fits, e.g. ["halloween"]
   notes?: string;
   publishedAt?: string; // YYYY-MM-DD, when known
 }

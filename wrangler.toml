@@ -1,0 +1,15 @@
+# Cloudflare Pages settings. Pages reads this file on every deploy.
+name = "chunk-planner"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chunk-planner"
+# Replace with the ID of the D1 database you create (README, step 2).
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[vars]
+# Filled in after Cloudflare Access is set up (README, step 4). Until both are set, the planner stays locked.
+ACCESS_TEAM_DOMAIN = ""   # e.g. "chunkhistory.cloudflareaccess.com"
+ACCESS_AUD = ""           # the Application Audience (AUD) tag

@@ -1,0 +1,2 @@
+# Copy to .dev.vars for local development. Skips the sign-in check on localhost only.
+DEV_NO_AUTH=1

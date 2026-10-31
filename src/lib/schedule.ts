@@ -40,7 +40,7 @@ export function suggestEvergreens(p: Planner, dates: string[]): Map<string, Vide
       if (!prev || r.date > prev) lastPromoted.set(r.promotesId, r.date);
     }
   }
-  const pool = p.videos.filter((v) => v.kind === 'long' && v.phase === 'published');
+  const pool = p.videos.filter((v) => v.kind === 'long' && v.status === 'published');
   const out = new Map<string, Video>();
   const today = todayISO();
   for (const date of [...dates].sort()) {
@@ -72,9 +72,10 @@ export function suggestEvergreens(p: Planner, dates: string[]): Map<string, Vide
   return out;
 }
 
-/** Finished long videos not yet released: how many weeks you have banked. */
-export function buffer(p: Planner): Video[] {
-  return p.videos.filter((v) => v.kind === 'long' && (v.phase === 'package' || v.phase === 'ready'));
+/** Long videos being made or ready that have no release date yet. */
+export function unscheduled(p: Planner): Video[] {
+  const booked = new Set(p.releases.map((r) => r.videoId));
+  return p.videos.filter((v) => v.kind === 'long' && v.status !== 'published' && v.status !== 'idea' && !booked.has(v.id));
 }
 
 /** Open long-video slots in the next n weeks. */

@@ -1,6 +1,6 @@
-// Builds data/planner.json from the style repo's video catalog (videos/README.md).
+// Builds data/seed.json (the planner's starting data) from the style repo's video catalog (videos/README.md).
 // Usage: node scripts/seed.mjs ../15minhistorystyle [--force]
-// Refuses to overwrite an existing data/planner.json unless --force is given.
+// Refuses to overwrite an existing data/seed.json unless --force is given.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -10,7 +10,7 @@ if (!styleRepo) {
   console.error('Usage: node scripts/seed.mjs <path to 15minhistorystyle> [--force]');
   process.exit(1);
 }
-const out = path.resolve('data/planner.json');
+const out = path.resolve('data/seed.json');
 if (fs.existsSync(out) && !force) {
   console.error(`${out} already exists. Pass --force to overwrite it.`);
   process.exit(1);
@@ -24,7 +24,7 @@ const videos = [];
 for (const line of readme.split('\n')) {
   const m = line.match(/^\| (\d+) \| (.+?) \| ([\d:]+) \| (.+?) \| ([\d,—-]+) \| (.+?) \| (.+?) \|$/);
   if (!m) continue;
-  const [, num, rawTitle, runtime, chapters, words, repo, ending] = m;
+  const [, num, rawTitle, runtime, , , repo] = m;
   const clean = rawTitle.replace(/\*/g, '').trim();
   // A trailing "(…)" is a note, not part of the title: "Redemption (Reconstruction, Part 3)".
   const paren = /\s*\(([^()]*)\)\s*$/;
@@ -40,12 +40,9 @@ for (const line of readme.split('\n')) {
     number: Number(num),
     title: head.trim(),
     subtitle,
-    phase: 'published',
+    status: 'published',
     runtime,
-    chapters: Number(chapters.match(/\d+/)?.[0]) || undefined,
-    words: Number(words.replace(/,/g, '')) || undefined,
     projectPath: project,
-    endingLine: ending.replace(/\*/g, '').trim(),
     notes: notes.join('; ') || undefined,
   });
 }
@@ -94,16 +91,11 @@ videos.push(
     number: 20,
     title: "They Fooled America's Richest Men",
     subtitle: 'The Great Diamond Hoax of 1872 (on screen: PAID FOR DIRT)',
-    phase: 'render',
+    status: 'in-progress',
     runtime: '~15:45',
-    chapters: 9,
-    words: 2479,
     projectPath: 'projects/Diamond_Hoax',
-    waitingOn: [
-      { who: 'suno', what: '8 new music cues (dh_salted_theme … dh_aftermath)' },
-      { who: 'me', what: 'Go-ahead for the full render' },
-    ],
-    notes: 'All 9 chapters built; only ch 1 rendered. Thumbnail H1 chosen. See HANDOFF.md.',
+    notes:
+      'All 9 chapters built; only ch 1 rendered. Waiting on 8 Suno cues and your go-ahead for the full render. Thumbnail H1 chosen.',
   },
   {
     id: 'cheaper-than-dirt',
@@ -112,7 +104,7 @@ videos.push(
     subtitle: 'Cattle, Gold, and the End of the Open Range',
     seriesId: 'american-west',
     episode: 2,
-    phase: 'scenes',
+    status: 'in-progress',
     projectPath: 'projects/American_West/ep2',
   },
   {
@@ -122,7 +114,7 @@ videos.push(
     subtitle: 'Homesteaders, Exodusters, and the Edge of the Rain',
     seriesId: 'american-west',
     episode: 3,
-    phase: 'script',
+    status: 'in-progress',
     notes: 'Outline ready: projects/American_West/EP3_PLAINS_FARMING_OUTLINE.md',
   },
   {
@@ -132,7 +124,7 @@ videos.push(
     subtitle: 'The Plains Nations and the Promises on Paper',
     seriesId: 'american-west',
     episode: 4,
-    phase: 'script',
+    status: 'in-progress',
     notes: 'Outline ready: projects/American_West/EP4_PLAINS_NATIONS_OUTLINE.md',
   },
 );
@@ -144,11 +136,11 @@ const shorts = [
   ['World Series', 'projects/World_Series_Short', 'published', ['world-series']],
   ['Pledge Salute', 'projects/Pledge_Salute_Short', 'published'],
   ['Candy Scare', 'projects/Candy_Scare', 'published', ['halloween']],
-  ['The Last Time America Was Debt Free', 'projects/Last_Time_Debt_Free_Short', 'script'],
-  ['Recession Indicators', 'projects/Recession_Indicators_Short', 'script'],
+  ['The Last Time America Was Debt Free', 'projects/Last_Time_Debt_Free_Short', 'in-progress'],
+  ['Recession Indicators', 'projects/Recession_Indicators_Short', 'in-progress'],
 ];
-for (const [title, projectPath, phase, seasons] of shorts) {
-  videos.push({ id: 'short-' + slug(title), kind: 'short', title, projectPath, phase, seasons });
+for (const [title, projectPath, status, seasons] of shorts) {
+  videos.push({ id: 'short-' + slug(title), kind: 'short', title, projectPath, status, seasons });
 }
 // The Halloween video's two Shorts (review/Shorts.md)
 for (const t of ['Trick or Treat Was a Bribe', 'The First Jack-o\'-Lanterns Were Turnips']) {
@@ -157,7 +149,7 @@ for (const t of ['Trick or Treat Was a Bribe', 'The First Jack-o\'-Lanterns Were
     kind: 'short',
     title: t,
     parentId: byNum(19)?.id,
-    phase: 'published',
+    status: 'published',
     seasons: ['halloween'],
   });
 }
@@ -171,8 +163,6 @@ const planner = {
       { kind: 'shortA', label: 'Short A', weekday: 4, time: '12:00' },
       { kind: 'shortB', label: 'Short B', weekday: 6, time: '12:00' },
     ],
-    bufferTarget: 2,
-    styleRepoPath: '../15minhistorystyle',
   },
   series,
   videos,

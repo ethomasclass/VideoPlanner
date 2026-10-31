@@ -32,13 +32,13 @@ export default function SlotDialog({ planner, date, slot, update, onClose }: Pro
   if (isEvergreen) {
     const suggested = suggestEvergreens(planner, [date]).get(date);
     options = planner.videos
-      .filter((v) => v.kind === 'long' && v.phase === 'published')
+      .filter((v) => v.kind === 'long' && v.status === 'published')
       .sort((a, b) => (b.number ?? 0) - (a.number ?? 0));
     if (suggested) options = [suggested, ...options.filter((v) => v.id !== suggested.id)];
   } else {
     const kind = slot.kind === 'long' ? 'long' : 'short';
     options = planner.videos.filter(
-      (v) => v.kind === kind && (v.id === pick || (v.phase !== 'published' && !bookedElsewhere.has(v.id))),
+      (v) => v.kind === kind && (v.id === pick || (v.status !== 'published' && !bookedElsewhere.has(v.id))),
     );
     // Shorts from this week's long video first.
     if (weekLong) options.sort((a, b) => Number(b.parentId === weekLong.id) - Number(a.parentId === weekLong.id));
@@ -52,7 +52,7 @@ export default function SlotDialog({ planner, date, slot, update, onClose }: Pro
           id: newId(slot.kind === 'long' ? 'video' : 'short'),
           kind: slot.kind === 'long' ? 'long' : 'short',
           title: newTitle.trim(),
-          phase: 'idea',
+          status: 'idea',
           parentId: isShort ? weekLong?.id : undefined,
         };
         p.videos.push(v);
@@ -73,7 +73,7 @@ export default function SlotDialog({ planner, date, slot, update, onClose }: Pro
       // Marking it published also marks the video published.
       const v = p.videos.find((x) => x.id === videoId);
       if (v && status === 'published') {
-        v.phase = 'published';
+        v.status = 'published';
         v.publishedAt = date;
       }
     });
@@ -104,7 +104,7 @@ export default function SlotDialog({ planner, date, slot, update, onClose }: Pro
                 {isEvergreen && i === 0 && !existing ? '★ ' : ''}
                 {v.number != null ? `#${v.number} ` : ''}
                 {v.title}
-                {v.phase !== 'published' ? ` (${v.phase})` : ''}
+                {v.status !== 'published' ? ` (${v.status.replace('-', ' ')})` : ''}
               </option>
             ))}
           </select>
