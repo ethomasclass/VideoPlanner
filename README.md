@@ -3,6 +3,8 @@
 A local web app for planning and scheduling Chunk History releases: one long video and three Shorts a week, the pipeline
 behind them, and (coming) Claude for ideas and optional scheduled uploads to YouTube. The full plan is in [`PLAN.md`](PLAN.md).
 
+![The calendar, November 2026](docs/calendar-step1.png)
+
 ## Run it
 
 ```bash
