@@ -5,15 +5,18 @@ import Sidebar from './components/Sidebar.tsx';
 import Ideas from './components/Ideas.tsx';
 import Seasons from './components/Seasons.tsx';
 import Stats from './components/Stats.tsx';
+import IdeaPage from './components/IdeaPage.tsx';
+import Schedule from './components/Schedule.tsx';
 import type { YouTubeData } from './types.ts';
 import { fetchYouTube, reconcile } from './lib/youtube.ts';
 import { ApiError, loadPlanner, savePlanner } from './lib/api.ts';
 import { todayISO } from './lib/dates.ts';
 
 type SaveState = 'saved' | 'saving' | 'error';
-type Tab = 'calendar' | 'ideas' | 'seasons' | 'stats';
-const TABS: Tab[] = ['calendar', 'ideas', 'seasons', 'stats'];
-const tabFromHash = (): Tab => TABS.find((t) => `#${t}` === location.hash) ?? 'calendar';
+type Tab = 'calendar' | 'ideas' | 'schedule' | 'seasons' | 'stats';
+const TABS: Tab[] = ['calendar', 'ideas', 'schedule', 'seasons', 'stats'];
+const tabFromHash = (): Tab => (location.hash.startsWith('#idea/') ? 'ideas' : TABS.find((t) => `#${t}` === location.hash) ?? 'calendar');
+const ideaFromHash = () => (location.hash.startsWith('#idea/') ? decodeURIComponent(location.hash.slice(6)) : null);
 
 export default function App() {
   const [planner, setPlanner] = useState<Planner | null>(null);
@@ -24,10 +27,27 @@ export default function App() {
   const [yt, setYt] = useState<YouTubeData | null>(null);
   const [ytError, setYtError] = useState('');
   const [ytSyncing, setYtSyncing] = useState(false);
+  const [openIdea, setOpenIdea] = useState<string | null>(ideaFromHash);
   const setTab = (t: Tab) => {
     history.replaceState(null, '', t === 'calendar' ? location.pathname : `#${t}`);
     setTabState(t);
+    setOpenIdea(null);
   };
+  const openIdeaPage = (id: string) => {
+    history.pushState(null, '', `#idea/${encodeURIComponent(id)}`);
+    setTabState('ideas');
+    setOpenIdea(id);
+    window.scrollTo(0, 0);
+  };
+  // The browser's Back button leaves an idea's page.
+  useEffect(() => {
+    const onPop = () => {
+      setTabState(tabFromHash());
+      setOpenIdea(ideaFromHash());
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   // Saving: one request at a time. Changes made while a save is running are sent right after it,
   // on top of the new revision.
@@ -176,6 +196,7 @@ export default function App() {
           <button className={`tab${tab === 'ideas' ? ' active' : ''}`} onClick={() => setTab('ideas')}>
             Ideas{planner.ideas.some((i) => !i.videoId) ? ` (${planner.ideas.filter((i) => !i.videoId).length})` : ''}
           </button>
+          <button className={`tab${tab === 'schedule' ? ' active' : ''}`} onClick={() => setTab('schedule')}>Schedule</button>
           <button className={`tab${tab === 'seasons' ? ' active' : ''}`} onClick={() => setTab('seasons')}>Seasons</button>
           <button className={`tab${tab === 'stats' ? ' active' : ''}`} onClick={() => setTab('stats')}>Stats</button>
         </nav>
@@ -210,12 +231,20 @@ export default function App() {
       )}
       {tab === 'calendar' ? (
         <main className="layout">
-          <Calendar planner={planner} update={update} yt={yt} />
+          <Calendar planner={planner} update={update} yt={yt} onEditSchedule={() => setTab('schedule')} />
           <Sidebar planner={planner} />
         </main>
       ) : tab === 'ideas' ? (
         <main className="layout-full">
-          <Ideas planner={planner} update={update} />
+          {openIdea ? (
+            <IdeaPage key={openIdea} planner={planner} ideaId={openIdea} update={update} onBack={() => setTab('ideas')} />
+          ) : (
+            <Ideas planner={planner} update={update} onOpen={openIdeaPage} />
+          )}
+        </main>
+      ) : tab === 'schedule' ? (
+        <main className="layout-full">
+          <Schedule planner={planner} update={update} yt={yt} />
         </main>
       ) : tab === 'seasons' ? (
         <main className="layout-full">

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Idea, IdeaDraft, Planner, Release, SlotKind, Thumb, Video } from '../types.ts';
 import { ApiError, brainstormIdeas, thumbnailConcepts } from '../lib/api.ts';
 import ThumbStrip, { ThumbFrame, leadThumb } from './ThumbStrip.tsx';
+import { ideaThumbs, openSlotsFor, slotLabel, videoFromIdea } from '../lib/ideas.ts';
 import { useAI } from '../lib/ai.ts';
 import { addDays, fmtShort, fromISO, todayISO } from '../lib/dates.ts';
 import { newId, nextOccurrence, releaseAt, slotsOn, videoById } from '../lib/schedule.ts';
@@ -9,58 +10,10 @@ import { newId, nextOccurrence, releaseAt, slotsOn, videoById } from '../lib/sch
 interface Props {
   planner: Planner;
   update: (change: (draft: Planner) => void) => void;
+  onOpen: (ideaId: string) => void;
 }
 
-const SLOT_LABEL: Record<SlotKind, string> = {
-  long: 'Long video',
-  shortA: 'Short A',
-  shortB: 'Short B',
-  evergreen: 'Evergreen Short',
-};
-
-/** Open calendar slots in the next 12 weeks that suit an idea of this kind. */
-function openSlotsFor(p: Planner, kind: Idea['kind']) {
-  const kinds: SlotKind[] = kind === 'long' ? ['long'] : ['shortA', 'shortB', 'evergreen'];
-  const out: { date: string; slot: SlotKind; time: string }[] = [];
-  const today = todayISO();
-  for (let i = 0; i < 84; i++) {
-    const date = addDays(today, i);
-    for (const s of slotsOn(p, date)) {
-      if (kinds.includes(s.kind) && !releaseAt(p, date, s.kind)) out.push({ date, slot: s.kind, time: s.time });
-    }
-  }
-  return out;
-}
-
-/** Thumbnails of an idea, including the single headline older ideas had. */
-const ideaThumbs = (idea: Idea): Thumb[] =>
-  idea.thumbs ?? (idea.thumbnail ? [{ id: `${idea.id}-t`, headline: idea.thumbnail, chosen: true }] : []);
-
-function videoFromIdea(idea: Idea): Video {
-  const thumbs = ideaThumbs(idea);
-  const title = leadThumb(thumbs)?.title?.trim() || idea.titles?.[0]?.trim() || idea.concept;
-  const otherTitles = (idea.titles ?? []).filter((t) => t !== title);
-  const notes = [
-    otherTitles.length > 0 && `Other titles: ${otherTitles.join(' · ')}`,
-    idea.hook && `Hook: ${idea.hook}`,
-    idea.whyNow && `Why now: ${idea.whyNow}`,
-    idea.archival && `Images: ${idea.archival}`,
-    idea.notes,
-  ]
-    .filter(Boolean)
-    .join('\n');
-  return {
-    id: newId(idea.kind === 'long' ? 'video' : 'short'),
-    kind: idea.kind,
-    title,
-    subtitle: title === idea.concept ? undefined : idea.concept,
-    status: 'idea',
-    notes: notes || undefined,
-    thumbs: thumbs.length ? thumbs : undefined,
-  };
-}
-
-export default function Ideas({ planner, update }: Props) {
+export default function Ideas({ planner, update, onOpen }: Props) {
   const ai = useAI();
   // Brainstorm
   const [prompt, setPrompt] = useState('');
@@ -106,14 +59,16 @@ export default function Ideas({ planner, update }: Props) {
     }
   };
 
-  const saveDrafts = (list: IdeaDraft[]) => {
+  const saveDrafts = (list: IdeaDraft[]): string[] => {
+    const ids = list.map(() => newId('idea'));
     update((p) => {
-      for (const { thumbnail, ...d } of list) {
+      list.forEach(({ thumbnail, ...d }, n) => {
         const thumb: Thumb = { ...thumbnail, setup: thumbnail.setup || undefined, title: thumbnail.title || d.titles[0], id: newId('thumb'), chosen: true };
-        p.ideas.push({ ...d, thumbs: [thumb], id: newId('idea'), source: ai.provider ?? 'claude', createdAt: todayISO() });
-      }
+        p.ideas.push({ ...d, thumbs: [thumb], id: ids[n], source: ai.provider ?? 'claude', createdAt: todayISO() });
+      });
     });
     setDrafts((ds) => ds.filter((d) => !list.includes(d)));
+    return ids;
   };
 
   const addOwn = () => {
@@ -255,6 +210,7 @@ export default function Ideas({ planner, update }: Props) {
             {drafts.map((d, i) => (
               <IdeaCard key={i} idea={d} draft lead={{ ...d.thumbnail, setup: d.thumbnail.setup || undefined, id: `draft-${i}` }}>
                 <button className="primary small" onClick={() => saveDrafts([d])}>Save</button>
+                <button className="link" onClick={() => onOpen(saveDrafts([d])[0])}>Save &amp; open</button>
                 <button className="link" onClick={() => setDrafts((ds) => ds.filter((x) => x !== d))}>Dismiss</button>
               </IdeaCard>
             ))}
@@ -282,7 +238,7 @@ export default function Ideas({ planner, update }: Props) {
           </p>
         )}
         {shown.map((idea) => (
-          <SavedIdea key={idea.id} idea={idea} planner={planner} update={update} />
+          <SavedIdea key={idea.id} idea={idea} planner={planner} update={update} onOpen={() => onOpen(idea.id)} />
         ))}
       </div>
     </section>
@@ -295,7 +251,9 @@ function IdeaCard({
   draft,
   children,
   extra,
+  onOpen,
 }: {
+  onOpen?: () => void;
   idea: IdeaDraft | Idea;
   lead?: Thumb;
   draft?: boolean;
@@ -318,7 +276,11 @@ function IdeaCard({
           <div className="idea-top">
             <span className="mono">{idea.kind === 'long' ? 'LONG VIDEO' : 'SHORT'}</span>
           </div>
-          <h3 className="idea-concept">{idea.concept}</h3>
+          {onOpen ? (
+            <button className="idea-concept as-link" onClick={onOpen} title="Open the planning page">{idea.concept}</button>
+          ) : (
+            <h3 className="idea-concept">{idea.concept}</h3>
+          )}
           {idea.hook && <p className="idea-hook">“{idea.hook}”</p>}
           {idea.titles && idea.titles.length > 0 && (
             <ul className="idea-titles">
@@ -346,7 +308,7 @@ function IdeaCard({
   );
 }
 
-function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; update: Props['update'] }) {
+function SavedIdea({ idea, planner, update, onOpen }: { idea: Idea; planner: Planner; update: Props['update']; onOpen: () => void }) {
   const [choice, setChoice] = useState('');
   const [showThumbs, setShowThumbs] = useState(false);
   const slots = useMemo(() => openSlotsFor(planner, idea.kind), [planner, idea.kind]);
@@ -412,6 +374,7 @@ function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; up
   return (
     <IdeaCard
       idea={idea}
+      onOpen={onOpen}
       lead={leadThumb(thumbs)}
       extra={showThumbs && <ThumbStrip thumbs={thumbs} onChange={setThumbs} onAskClaude={askClaude} />}
     >
@@ -428,7 +391,7 @@ function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; up
       </button>
       {video ? (
         <span className="planned-note">
-          {release ? `on the calendar: ${fmtShort(release.date)} · ${SLOT_LABEL[release.slot]}` : 'made into a video (no date yet)'}
+          {release ? `on the calendar: ${fmtShort(release.date)} · ${slotLabel(planner, release.slot)}` : 'made into a video (no date yet)'}
         </span>
       ) : (
         <span className="plan">
@@ -437,13 +400,14 @@ function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; up
             <option value="nodate">Make it a video, no date yet</option>
             {slots.map((s) => (
               <option key={s.date + s.slot} value={`${s.date}|${s.slot}`}>
-                {fmtShort(s.date)} · {SLOT_LABEL[s.slot]}
+                {fmtShort(s.date)} · {slotLabel(planner, s.slot)}
               </option>
             ))}
           </select>
           <button className="primary small" onClick={plan} disabled={!choice}>Plan</button>
         </span>
       )}
+      <button className="primary small open-btn" onClick={onOpen}>Open</button>
       <span className="spacer" />
       <span className="mono">{idea.source === 'me' ? 'YOU' : idea.source.toUpperCase()} · {fmtShort(idea.createdAt).toUpperCase()}</span>
       <button className="link danger" onClick={remove}>Delete</button>

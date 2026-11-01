@@ -3,6 +3,29 @@ import { addDays, fromISO, todayISO, weekStart } from './dates.ts';
 
 export const SLOT_ORDER: SlotKind[] = ['long', 'shortA', 'shortB', 'evergreen'];
 
+/** The starting schedule: Monday evergreen Short, Tuesday long video, Thursday and Saturday Shorts. */
+export const DEFAULT_CADENCE: CadenceSlot[] = [
+  { kind: 'evergreen', label: 'Evergreen Short', weekday: 1, time: '12:00' },
+  { kind: 'long', label: 'Long video', weekday: 2, time: '15:00' },
+  { kind: 'shortA', label: 'Short A', weekday: 4, time: '12:00' },
+  { kind: 'shortB', label: 'Short B', weekday: 6, time: '12:00' },
+];
+
+/**
+ * Slots to draw on a day: the schedule's slots, plus any release booked on that day under a slot the schedule
+ * no longer has there (e.g. after you moved the long video from Tuesday to Wednesday), so nothing disappears.
+ */
+export function slotsToShow(p: Planner, date: string): CadenceSlot[] {
+  const regular = slotsOn(p, date);
+  const extra = p.releases
+    .filter((r) => r.date === date && !regular.some((s) => s.kind === r.slot))
+    .map((r) => {
+      const def = p.settings.cadence.find((c) => c.kind === r.slot) ?? DEFAULT_CADENCE.find((c) => c.kind === r.slot)!;
+      return { ...def, weekday: fromISO(date).getDay(), time: r.time ?? def.time };
+    });
+  return [...regular, ...extra].sort((a, b) => SLOT_ORDER.indexOf(a.kind) - SLOT_ORDER.indexOf(b.kind));
+}
+
 export const slotsOn = (p: Planner, date: string): CadenceSlot[] =>
   p.settings.cadence
     .filter((c) => c.weekday === fromISO(date).getDay())

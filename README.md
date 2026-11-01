@@ -13,6 +13,12 @@ It runs free on Cloudflare (a Worker with a D1 database), and only you can sign 
   (spooky season, World Series, Black History Month…), otherwise the one promoted longest ago. Click *use* to accept.
 - Each video has one status: **Idea → In progress → Ready → Published**.
 - Sidebar: open long slots in the next 6 weeks, videos with no date yet, what's next, and upcoming seasons.
+- **Schedule** tab (or *Schedule* on the calendar): change each slot's day, time, name and type, add or remove slots, and
+  see a preview of your week and which days your uploads do best on YouTube. Releases already booked stay on their dates.
+- **Idea planning page:** tap an idea's title (or *Open*, or *Save & open* on an AI suggestion) for a full page where you can
+  edit everything: the idea, kind, thumbnails, titles (reorder, character counts), hook, why now, an outline, archival
+  images and research links, notes, and planning (date, video title, status, move or remove the date, or turn it back into
+  just an idea).
 - **Seasons** tab: add your own seasons (Christmas, Women's History Month…), change dates (they repeat yearly and can run
   over New Year), rename, hide from the calendar, or delete. Tag the videos that fit each season: during it, they come
   first in the Monday suggestions, and Claude aims its ideas at seasons coming up.

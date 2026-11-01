@@ -87,6 +87,8 @@ export interface Idea {
   whyNow?: string; // season, anniversary, or why it fits the channel now
   archival?: string; // what real images/documents likely exist
   notes?: string;
+  outline?: string; // beats / rough outline, your own
+  links?: { label?: string; url: string }[]; // research links and sources
   starred?: boolean;
   source: 'me' | 'claude' | 'gemini';
   videoId?: string; // set once the idea becomes a video

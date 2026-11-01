@@ -3,7 +3,7 @@ import type { CadenceSlot, Planner, YouTubeData, YTVideo } from '../types.ts';
 import { compact, ytDay, ytUrl } from '../lib/youtube.ts';
 import { STATUSES } from '../types.ts';
 import { MONTHS, addDays, fmtShort, fromISO, monthGrid, todayISO } from '../lib/dates.ts';
-import { releaseAt, slotsOn, suggestEvergreens, videoById, windowsOn, newId } from '../lib/schedule.ts';
+import { releaseAt, slotsToShow, suggestEvergreens, videoById, windowsOn, newId } from '../lib/schedule.ts';
 import SlotDialog from './SlotDialog.tsx';
 import { leadThumb } from './ThumbStrip.tsx';
 import { imageSrc } from '../lib/images.ts';
@@ -12,11 +12,12 @@ interface Props {
   planner: Planner;
   update: (change: (draft: Planner) => void) => void;
   yt?: YouTubeData | null;
+  onEditSchedule?: () => void;
 }
 
 const KIND_TAG = { long: 'LONG', shortA: 'SHORT A', shortB: 'SHORT B', evergreen: 'EVERGREEN' } as const;
 
-export default function Calendar({ planner, update, yt }: Props) {
+export default function Calendar({ planner, update, yt, onEditSchedule }: Props) {
   const now = fromISO(todayISO());
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [editing, setEditing] = useState<{ date: string; slot: CadenceSlot } | null>(null);
@@ -123,6 +124,7 @@ export default function Calendar({ planner, update, yt }: Props) {
           <button onClick={() => shift(-1)} aria-label="Previous month">←</button>
           <button onClick={() => setYm({ y: now.getFullYear(), m: now.getMonth() })}>Today</button>
           <button onClick={() => shift(1)} aria-label="Next month">→</button>
+          {onEditSchedule && <button onClick={onEditSchedule} title="Change posting days and times">Schedule</button>}
         </div>
       </div>
 
@@ -150,7 +152,7 @@ export default function Calendar({ planner, update, yt }: Props) {
                   ),
                 )}
               </div>
-              {slotsOn(planner, date).map((slot) => renderSlot(date, slot))}
+              {slotsToShow(planner, date).map((slot) => renderSlot(date, slot))}
 {renderUploads(date)}
             </div>
           );
@@ -160,7 +162,7 @@ export default function Calendar({ planner, update, yt }: Props) {
       {/* Phones: the same slots as a week-by-week list (CSS shows one or the other). */}
       <div className="agenda">
         {weeks.map((week) => {
-          const days = week.filter((d) => fromISO(d).getMonth() === ym.m && (slotsOn(planner, d).length > 0 || ytByDay.has(d)));
+          const days = week.filter((d) => fromISO(d).getMonth() === ym.m && (slotsToShow(planner, d).length > 0 || ytByDay.has(d)));
           if (days.length === 0) return null;
           return (
             <div key={week[0]} className="agenda-week">
@@ -179,7 +181,7 @@ export default function Calendar({ planner, update, yt }: Props) {
                         ))}
                       </div>
                     )}
-                    {slotsOn(planner, date).map((slot) => renderSlot(date, slot))}
+                    {slotsToShow(planner, date).map((slot) => renderSlot(date, slot))}
 {renderUploads(date)}
                   </div>
                 </div>
