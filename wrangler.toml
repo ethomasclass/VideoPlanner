@@ -18,6 +18,6 @@ database_name = "chunk-planner"
 database_id = "af7c79d9-bb64-462f-91be-84ce6c0ecd2e"
 
 [vars]
-# Filled in after Cloudflare Access is set up (README, step 4). Until both are set, the planner stays locked.
-ACCESS_TEAM_DOMAIN = ""   # e.g. "chunkhistory.cloudflareaccess.com"
-ACCESS_AUD = ""           # the Application Audience (AUD) tag
+# Cloudflare Access (Zero Trust) for this Worker. Every /api request must carry a token signed for this app.
+ACCESS_TEAM_DOMAIN = "soft-recipe-34d1.cloudflareaccess.com"
+ACCESS_AUD = "fd10328ecb12adce8137a2a97758edcc97c0afd4eadfbe71ba301416902e40ba"
