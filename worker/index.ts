@@ -3,13 +3,12 @@
 import { checkAccess, type AccessEnv } from './access';
 import { getPlanner, putPlanner, readPlanner } from './planner';
 import { brainstorm, thumbnailConcepts } from './brainstorm';
-import { ClaudeError } from './claude';
+import { AIError, providerOf, type AIEnv } from './ai';
 import { deleteImage, getImage, postImage } from './images';
 
-interface Env extends AccessEnv {
+interface Env extends AccessEnv, AIEnv {
   DB: D1Database;
   ASSETS: Fetcher;
-  ANTHROPIC_API_KEY?: string; // a Worker secret
 }
 
 export default {
@@ -27,16 +26,17 @@ export default {
       if (request.method === 'PUT') return putPlanner(env.DB, request);
       return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     }
+    if (url.pathname === '/api/ai' && request.method === 'GET') return Response.json({ provider: providerOf(env) });
     if (request.method === 'POST' && (url.pathname === '/api/brainstorm' || url.pathname === '/api/thumbnails')) {
       try {
         const body = (await request.json().catch(() => ({}))) as Record<string, any>;
         if (url.pathname === '/api/brainstorm') {
-          return Response.json({ ideas: await brainstorm(env.ANTHROPIC_API_KEY, await readPlanner(env.DB), body) });
+          return Response.json({ ideas: await brainstorm(env, await readPlanner(env.DB), body) });
         }
         if (!body.concept) return Response.json({ error: 'No idea given.' }, { status: 400 });
-        return Response.json({ concepts: await thumbnailConcepts(env.ANTHROPIC_API_KEY, body) });
+        return Response.json({ concepts: await thumbnailConcepts(env, body) });
       } catch (e) {
-        if (e instanceof ClaudeError) return Response.json({ error: e.message, setup: e.setup }, { status: e.status });
+        if (e instanceof AIError) return Response.json({ error: e.message, setup: e.setup }, { status: e.status });
         throw e;
       }
     }

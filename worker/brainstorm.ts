@@ -1,8 +1,8 @@
-// "Brainstorm with Claude" (video ideas, thumbnail first) and "thumbnail concepts" for one idea.
+// "Brainstorm" (video ideas, thumbnail first) and "thumbnail concepts" for one idea.
 // The channel context (videos so far, ideas already saved, seasons) is read from the planner in D1,
 // so the browser only sends the request.
 import type { IdeaDraft, Planner, ThumbDraft } from '../src/types';
-import { askClaude, CHANNEL } from './claude';
+import { askAI, CHANNEL, type AIEnv } from './ai';
 
 const THUMB_PROPS = {
   picture: { type: 'string', description: 'What is in the frame: the archival image, and which subject is tinted coral.' },
@@ -93,7 +93,7 @@ ${windows}`;
 const clampCount = (n: unknown, def: number) => Math.min(Math.max(Math.round(Number(n) || def), 1), 12);
 
 export async function brainstorm(
-  apiKey: string | undefined,
+  env: AIEnv,
   planner: Planner,
   request: { prompt?: string; count?: number; kind?: 'long' | 'short' },
 ): Promise<IdeaDraft[]> {
@@ -101,7 +101,7 @@ export async function brainstorm(
   const kind = request.kind === 'short' ? 'short' : 'long';
   const ask = (request.prompt ?? '').trim().slice(0, 1000) || 'Whatever you think would do well on the channel next.';
   const today = new Date().toISOString().slice(0, 10);
-  const out = await askClaude<{ ideas: IdeaDraft[] }>(apiKey, {
+  const out = await askAI<{ ideas: IdeaDraft[] }>(env, {
     system: IDEAS_SYSTEM,
     schema: IDEAS_SCHEMA,
     user: `${channelContext(planner, today)}
@@ -112,7 +112,7 @@ Give me ${count} ${kind === 'long' ? 'long-video' : 'Short'} ideas. What I'm loo
 }
 
 export async function thumbnailConcepts(
-  apiKey: string | undefined,
+  env: AIEnv,
   request: { concept?: string; hook?: string; titles?: string[]; kind?: 'long' | 'short'; existing?: string[]; count?: number },
 ): Promise<ThumbDraft[]> {
   const concept = (request.concept ?? '').trim().slice(0, 1000);
@@ -124,7 +124,7 @@ export async function thumbnailConcepts(
     request.titles?.length && `Title ideas so far: ${request.titles.slice(0, 6).join(' · ').slice(0, 600)}`,
     request.existing?.length && `Thumbnail concepts it already has (don't repeat):\n${request.existing.slice(0, 12).map((e) => `- ${e.slice(0, 300)}`).join('\n')}`,
   ].filter(Boolean);
-  const out = await askClaude<{ concepts: ThumbDraft[] }>(apiKey, {
+  const out = await askAI<{ concepts: ThumbDraft[] }>(env, {
     system: CONCEPTS_SYSTEM,
     schema: CONCEPTS_SCHEMA,
     user: `${lines.join('\n')}

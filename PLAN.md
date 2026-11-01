@@ -8,7 +8,7 @@ status and notes.
 
 - **A planner, not a production tracker.** One status per video: Idea → In progress → Ready → Published.
 - **In the cloud, free:** a Cloudflare Worker (the site and its API), D1 (the database), Access (sign-in, only you). Works on PC and phone.
-- **Claude for ideas** (an Anthropic API key, cents per brainstorm).
+- **AI for ideas:** Gemini's free tier (GEMINI_API_KEY) or Claude's paid API (ANTHROPIC_API_KEY, preferred when set).
 - **YouTube uploads: not now.** Scheduling in YouTube Studio takes a couple of minutes; revisit once the planner is a habit.
 - **No classroom features.**
 

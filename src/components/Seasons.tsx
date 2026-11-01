@@ -83,7 +83,7 @@ export default function Seasons({ planner, update }: Props) {
         <h1 className="tape">Seasons</h1>
         <p className="hand">
           times of year when some topics get extra attention. dates repeat every year. during a season, the videos you tag
-          here come first in the monday suggestions, and claude aims its ideas at seasons coming up.
+          here come first in the monday suggestions, and the ai brainstorm aims its ideas at seasons coming up.
         </p>
       </div>
 

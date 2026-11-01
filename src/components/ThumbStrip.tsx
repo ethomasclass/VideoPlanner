@@ -3,11 +3,12 @@ import type { Thumb, ThumbDraft } from '../types.ts';
 import { newId } from '../lib/schedule.ts';
 import { deleteImage, imageSrc, uploadImage } from '../lib/images.ts';
 import { ApiError } from '../lib/api.ts';
+import { useAI } from '../lib/ai.ts';
 
 interface Props {
   thumbs: Thumb[];
   onChange: (next: Thumb[]) => void;
-  /** When given, shows "Ask Claude for thumbnail concepts". */
+  /** When given, shows "ask <AI> for 5 concepts". */
   onAskClaude?: () => Promise<ThumbDraft[]>;
 }
 
@@ -32,7 +33,8 @@ export function ThumbFrame({ thumb, small }: { thumb: Thumb; small?: boolean }) 
 }
 
 export default function ThumbStrip({ thumbs, onChange, onAskClaude }: Props) {
-  const [busy, setBusy] = useState<string | null>(null); // thumb id being uploaded, 'new', or 'claude'
+  const ai = useAI();
+  const [busy, setBusy] = useState<string | null>(null); // thumb id being uploaded, 'new', or 'ai'
   const [error, setError] = useState('');
   const [form, setForm] = useState<{ headline: string; picture: string; title: string } | null>(null);
 
@@ -66,7 +68,7 @@ export default function ThumbStrip({ thumbs, onChange, onAskClaude }: Props) {
   const ask = async () => {
     if (!onAskClaude) return;
     setError('');
-    setBusy('claude');
+    setBusy('ai');
     try {
       const concepts = await onAskClaude();
       onChange([...thumbs, ...concepts.map((c) => ({ ...c, setup: c.setup || undefined, id: newId('thumb'), chosen: false }))]);
@@ -129,7 +131,7 @@ export default function ThumbStrip({ thumbs, onChange, onAskClaude }: Props) {
           </button>
           {onAskClaude && (
             <button className="add-option" onClick={ask} disabled={!!busy}>
-              {busy === 'claude' ? 'claude is thinking…' : '+ ask claude for 5 concepts'}
+              {busy === 'ai' ? `${ai.name.toLowerCase()} is thinking…` : `+ ask ${ai.name.toLowerCase()} for 5 concepts`}
             </button>
           )}
         </div>

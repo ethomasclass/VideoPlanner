@@ -62,22 +62,29 @@ Optional, for a second lock: on the Worker, **Settings → Variables and Secrets
 repo, so use **Backup** now and then. (Backup saves your plans, ideas and thumbnail concepts; uploaded images stay in the
 database and aren't in the backup file.)
 
-## Claude ideas (connect once)
+## AI ideas (connect once)
 
-The **Ideas** tab's *Brainstorm* button asks Claude for video ideas that fit the channel: each comes with the concept, a
-hook, three titles (with character counts), a thumbnail headline, why now, and what archival images likely exist. Claude
-sees your list of videos and saved ideas, so it doesn't repeat them. It uses Claude Opus 5.5; a brainstorm costs roughly
-10–20 cents. If a request is ever declined by a safety check, it's retried automatically on a suitable fallback model.
+The **Ideas** tab's *Brainstorm* button and *ask … for 5 concepts* use an AI: **Gemini** (free tier) or **Claude** (paid
+API). Add one key as a Worker secret; if both are set, Claude is used. Without a key, everything else in the planner still
+works and those buttons explain how to connect.
 
-To connect it:
-1. Go to https://platform.claude.com and sign in (a separate account from your Claude subscription is fine; API use is
-   billed separately).
-2. **Billing:** add a few dollars of credit. Optional but wise: under **Limits**, set a monthly spend limit (e.g. $10).
-3. **API keys → Create key**, name it `chunk-planner`, and copy it (it's shown only once).
-4. In Cloudflare, open the **chunk-planner** Worker → **Settings → Variables and Secrets → Add**. Type **Secret**, name
-   `ANTHROPIC_API_KEY`, paste the key, and save/deploy.
+Each brainstorm gives ideas thumbnail first (headline, setup line, what's in the picture, paired title), then the concept,
+a hook, three titles, why now, and what archival images exist. The AI sees your videos and saved ideas, so it doesn't
+repeat them. A brainstorm takes about a minute.
 
-The key stays inside Cloudflare; the browser never sees it. Don't paste it into chat or into a file in the repo.
+**Gemini (free tier):**
+1. Go to https://aistudio.google.com, sign in with Google, and choose **Get API key → Create API key**.
+2. In Cloudflare, open the **chunk-planner** Worker → **Settings → Variables and Secrets → Add**. Type **Secret**, name
+   `GEMINI_API_KEY`, paste the key, and save/deploy.
+
+Uses `gemini-flash-latest`; to use another model add a variable `GEMINI_MODEL` (e.g. `gemini-pro-latest`). The free tier has
+rate and daily limits (the app says so if you hit one), and Google may use free-tier prompts to improve its products.
+
+**Claude (paid API, separate from a Claude subscription):** create a key at https://platform.claude.com (add a few dollars
+of credit; set a monthly limit under **Limits**), then add it the same way as a Secret named `ANTHROPIC_API_KEY`. Uses
+Claude Opus 5.5, roughly 10–20 cents a brainstorm; a request declined by a safety check is retried on a fallback model.
+
+Keys stay inside Cloudflare; the browser never sees them. Don't paste a key into chat or into a file in the repo.
 
 ## Run it on your computer (optional, for development)
 

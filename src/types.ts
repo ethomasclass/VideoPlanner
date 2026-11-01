@@ -87,12 +87,12 @@ export interface Idea {
   archival?: string; // what real images/documents likely exist
   notes?: string;
   starred?: boolean;
-  source: 'me' | 'claude';
+  source: 'me' | 'claude' | 'gemini';
   videoId?: string; // set once the idea becomes a video
   createdAt: string; // YYYY-MM-DD
 }
 
-/** A thumbnail concept as Claude returns it. */
+/** A thumbnail concept as the AI returns it. */
 export interface ThumbDraft {
   picture: string;
   headline: string;
@@ -100,7 +100,7 @@ export interface ThumbDraft {
   title: string;
 }
 
-/** An idea as Claude returns it, before it's saved. Thumbnail first. */
+/** An idea as the AI returns it, before it's saved. Thumbnail first. */
 export interface IdeaDraft {
   thumbnail: ThumbDraft;
   kind: Idea['kind'];

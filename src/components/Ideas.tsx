@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Idea, IdeaDraft, Planner, Release, SlotKind, Thumb, Video } from '../types.ts';
 import { ApiError, brainstormIdeas, thumbnailConcepts } from '../lib/api.ts';
 import ThumbStrip, { ThumbFrame, leadThumb } from './ThumbStrip.tsx';
+import { useAI } from '../lib/ai.ts';
 import { addDays, fmtShort, fromISO, todayISO } from '../lib/dates.ts';
 import { newId, nextOccurrence, releaseAt, slotsOn, videoById } from '../lib/schedule.ts';
 
@@ -60,6 +61,7 @@ function videoFromIdea(idea: Idea): Video {
 }
 
 export default function Ideas({ planner, update }: Props) {
+  const ai = useAI();
   // Brainstorm
   const [prompt, setPrompt] = useState('');
   const [kind, setKind] = useState<Idea['kind']>('long');
@@ -108,7 +110,7 @@ export default function Ideas({ planner, update }: Props) {
     update((p) => {
       for (const { thumbnail, ...d } of list) {
         const thumb: Thumb = { ...thumbnail, setup: thumbnail.setup || undefined, title: thumbnail.title || d.titles[0], id: newId('thumb'), chosen: true };
-        p.ideas.push({ ...d, thumbs: [thumb], id: newId('idea'), source: 'claude', createdAt: todayISO() });
+        p.ideas.push({ ...d, thumbs: [thumb], id: newId('idea'), source: ai.provider ?? 'claude', createdAt: todayISO() });
       }
     });
     setDrafts((ds) => ds.filter((d) => !list.includes(d)));
@@ -150,7 +152,7 @@ export default function Ideas({ planner, update }: Props) {
     <section className="ideas">
       <div className="ideas-tools">
         <div className="panel">
-          <h2 className="tape small">Brainstorm with Claude</h2>
+          <h2 className="tape small">Brainstorm with {ai.name}</h2>
           <label className="field">
             <span>What are you looking for?</span>
             <textarea
@@ -187,7 +189,7 @@ export default function Ideas({ planner, update }: Props) {
           <button className="primary" onClick={run} disabled={loading}>
             {loading ? 'Thinking…' : 'Brainstorm'}
           </button>
-          {loading && <p className="hand">claude is thinking. this usually takes under a minute.</p>}
+          {loading && <p className="hand">{ai.name.toLowerCase()} is thinking. this usually takes under a minute.</p>}
           {error && (
             <p className={`error-note${error.setup ? ' setup' : ''}`}>{error.message}</p>
           )}
@@ -246,7 +248,7 @@ export default function Ideas({ planner, update }: Props) {
         {drafts.length > 0 && (
           <div className="drafts">
             <div className="list-head">
-              <h2 className="tape small">From Claude</h2>
+              <h2 className="tape small">From {ai.name}</h2>
               <button className="link" onClick={() => saveDrafts(drafts)}>Save all</button>
               <button className="link" onClick={() => setDrafts([])}>Dismiss all</button>
             </div>
@@ -273,7 +275,7 @@ export default function Ideas({ planner, update }: Props) {
         {shown.length === 0 && (
           <p className="hand">
             {filter === 'open'
-              ? 'no ideas yet. brainstorm a few with claude, or add your own.'
+              ? 'no ideas yet. brainstorm a few, or add your own.'
               : filter === 'starred'
                 ? 'star the ideas you like best and they collect here.'
                 : 'ideas you put on the calendar show up here.'}
@@ -443,7 +445,7 @@ function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; up
         </span>
       )}
       <span className="spacer" />
-      <span className="mono">{idea.source === 'claude' ? 'CLAUDE' : 'YOU'} · {fmtShort(idea.createdAt).toUpperCase()}</span>
+      <span className="mono">{idea.source === 'me' ? 'YOU' : idea.source.toUpperCase()} · {fmtShort(idea.createdAt).toUpperCase()}</span>
       <button className="link danger" onClick={remove}>Delete</button>
     </IdeaCard>
   );
