@@ -22,6 +22,7 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
+html { background: var(--desk-lo); }
 body {
   font-family: Inter, system-ui, sans-serif;
   font-weight: 600;
@@ -182,3 +183,47 @@ label.link { cursor: pointer; font-size: 14px; }
 .gate { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center; }
 .gate .logo { height: 40px; }
 .gate .hand { font-size: 30px; max-width: 640px; }
+
+/* ---- phone agenda (hidden on wide screens) ---- */
+.agenda { display: none; }
+.agenda-week { margin-bottom: 18px; }
+.agenda-week-label { margin: 0 0 8px 2px; }
+.agenda-day {
+  display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 10px;
+  background: rgba(13, 12, 9, 0.55); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px;
+}
+.agenda-day.today { border-color: var(--teal); }
+.agenda-day.past .chip { opacity: 0.6; }
+.agenda-date { display: flex; flex-direction: column; align-items: center; }
+.agenda-num { font-family: 'Abril Fatface', serif; font-size: 26px; line-height: 1.1; }
+.agenda-day.today .agenda-num { color: var(--teal); }
+.agenda-slots { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.agenda-windows { display: flex; gap: 4px; flex-wrap: wrap; }
+.agenda .chip { padding: 8px 10px; }
+.agenda .chip-title { font-size: 15px; }
+.agenda .chip.empty { font-size: 22px; padding: 6px 10px; }
+.agenda .ghost-actions button { font-size: 22px; }
+
+/* Tablets and small laptops: sidebar under the calendar. */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px 28px; }
+  .sidebar .tiles { grid-column: 1 / -1; }
+}
+
+/* Phones: the week list instead of the month grid. */
+@media (max-width: 760px) {
+  .grid { display: none; }
+  .agenda { display: block; }
+  .topbar { flex-wrap: wrap; gap: 8px 16px; padding: 12px 16px; }
+  .logo { height: 24px; }
+  .topbar nav { order: 3; width: 100%; }
+  .topbar .top-actions { margin-left: auto; }
+  .layout { padding: 16px 14px 32px; gap: 24px; }
+  .cal-head { flex-wrap: wrap; gap: 12px; }
+  .tape { font-size: 26px; }
+  .notice { margin: 12px 14px 0; }
+  .dialog { padding: 18px; }
+  .row { flex-direction: column; gap: 14px; }
+  body { background-attachment: scroll; }
+}

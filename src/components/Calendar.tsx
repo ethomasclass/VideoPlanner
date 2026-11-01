@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { CadenceSlot, Planner } from '../types.ts';
 import { STATUSES } from '../types.ts';
-import { MONTHS, addDays, fromISO, monthGrid, todayISO } from '../lib/dates.ts';
+import { MONTHS, addDays, fmtShort, fromISO, monthGrid, todayISO } from '../lib/dates.ts';
 import { releaseAt, slotsOn, suggestEvergreens, videoById, windowsOn, newId } from '../lib/schedule.ts';
 import SlotDialog from './SlotDialog.tsx';
 
@@ -29,6 +29,60 @@ export default function Calendar({ planner, update }: Props) {
     update((p) => {
       p.releases.push({ id: newId('rel'), date, slot: slot.kind, time: slot.time, promotesId: videoId, status: 'planned' });
     });
+
+  // One cadence slot on one day: a booked release, a suggestion (Mondays), or an empty slot.
+  const renderSlot = (date: string, slot: CadenceSlot) => {
+    const past = date < today;
+    const rel = releaseAt(planner, date, slot.kind);
+    const video = videoById(planner, rel?.videoId);
+    const promotes = videoById(planner, rel?.promotesId);
+    const open = () => setEditing({ date, slot });
+
+    if (rel) {
+      const title =
+        video?.title ?? (promotes ? `Short from ${promotes.title}` : rel.label || 'Untitled');
+      return (
+        <button key={slot.kind} className={`chip ${slot.kind} ${rel.status}`} onClick={open}>
+          <span className="chip-tag">
+            {KIND_TAG[slot.kind]} · {rel.time ?? slot.time}
+            {rel.status !== 'planned' && ` · ${rel.status.toUpperCase()}`}
+          </span>
+          <span className="chip-title">{title}</span>
+          {video && (video.status === 'idea' || video.status === 'in-progress') && (
+            <span className="chip-phase">
+              {STATUSES.find((s) => s.id === video.status)?.label.toLowerCase()}
+            </span>
+          )}
+        </button>
+      );
+    }
+
+    const suggestion = suggestions.get(date);
+    if (slot.kind === 'evergreen' && suggestion) {
+      return (
+        <div key={slot.kind} className="chip ghost">
+          <span className="chip-tag">EVERGREEN · SUGGESTED</span>
+          <span className="chip-title">{suggestion.title}</span>
+          <span className="ghost-actions">
+            <button onClick={() => acceptSuggestion(date, slot, suggestion.id)}>use</button>
+            <button onClick={open}>pick…</button>
+          </span>
+        </div>
+      );
+    }
+
+    const urgent = slot.kind === 'long' && !past && date <= soon;
+    return (
+      <button
+        key={slot.kind}
+        className={`chip empty${urgent ? ' urgent' : ''}`}
+        onClick={open}
+        disabled={past}
+      >
+        + {slot.label.toLowerCase()}
+      </button>
+    );
+  };
 
   return (
     <section className="calendar">
@@ -67,57 +121,38 @@ export default function Calendar({ planner, update }: Props) {
                   ),
                 )}
               </div>
-              {slotsOn(planner, date).map((slot) => {
-                const rel = releaseAt(planner, date, slot.kind);
-                const video = videoById(planner, rel?.videoId);
-                const promotes = videoById(planner, rel?.promotesId);
-                const open = () => setEditing({ date, slot });
+              {slotsOn(planner, date).map((slot) => renderSlot(date, slot))}
+            </div>
+          );
+        })}
+      </div>
 
-                if (rel) {
-                  const title =
-                    video?.title ?? (promotes ? `Short from ${promotes.title}` : rel.label || 'Untitled');
-                  return (
-                    <button key={slot.kind} className={`chip ${slot.kind} ${rel.status}`} onClick={open}>
-                      <span className="chip-tag">
-                        {KIND_TAG[slot.kind]} · {rel.time ?? slot.time}
-                        {rel.status !== 'planned' && ` · ${rel.status.toUpperCase()}`}
-                      </span>
-                      <span className="chip-title">{title}</span>
-                      {video && (video.status === 'idea' || video.status === 'in-progress') && (
-                        <span className="chip-phase">
-                          {STATUSES.find((s) => s.id === video.status)?.label.toLowerCase()}
-                        </span>
-                      )}
-                    </button>
-                  );
-                }
-
-                const suggestion = suggestions.get(date);
-                if (slot.kind === 'evergreen' && suggestion) {
-                  return (
-                    <div key={slot.kind} className="chip ghost">
-                      <span className="chip-tag">EVERGREEN · SUGGESTED</span>
-                      <span className="chip-title">{suggestion.title}</span>
-                      <span className="ghost-actions">
-                        <button onClick={() => acceptSuggestion(date, slot, suggestion.id)}>use</button>
-                        <button onClick={open}>pick…</button>
-                      </span>
-                    </div>
-                  );
-                }
-
-                const urgent = slot.kind === 'long' && !past && date <= soon;
-                return (
-                  <button
-                    key={slot.kind}
-                    className={`chip empty${urgent ? ' urgent' : ''}`}
-                    onClick={open}
-                    disabled={past}
-                  >
-                    + {slot.label.toLowerCase()}
-                  </button>
-                );
-              })}
+      {/* Phones: the same slots as a week-by-week list (CSS shows one or the other). */}
+      <div className="agenda">
+        {weeks.map((week) => {
+          const days = week.filter((d) => fromISO(d).getMonth() === ym.m && slotsOn(planner, d).length > 0);
+          if (days.length === 0) return null;
+          return (
+            <div key={week[0]} className="agenda-week">
+              <div className="mono agenda-week-label">WEEK OF {fmtShort(week[0]).toUpperCase()}</div>
+              {days.map((date) => (
+                <div key={date} className={`agenda-day${date < today ? ' past' : ''}${date === today ? ' today' : ''}`}>
+                  <div className="agenda-date">
+                    <span className="mono">{fromISO(date).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()}</span>
+                    <span className="agenda-num">{fromISO(date).getDate()}</span>
+                  </div>
+                  <div className="agenda-slots">
+                    {windowsOn(planner, date).length > 0 && (
+                      <div className="agenda-windows">
+                        {windowsOn(planner, date).map((w) => (
+                          <span key={w.id} className="window">{w.name}</span>
+                        ))}
+                      </div>
+                    )}
+                    {slotsOn(planner, date).map((slot) => renderSlot(date, slot))}
+                  </div>
+                </div>
+              ))}
             </div>
           );
         })}
