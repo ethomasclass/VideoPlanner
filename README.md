@@ -13,6 +13,8 @@ It runs free on Cloudflare (a Worker with a D1 database), and only you can sign 
   (spooky season, World Series, Black History Month…), otherwise the one promoted longest ago. Click *use* to accept.
 - Each video has one status: **Idea → In progress → Ready → Published**.
 - Sidebar: open long slots in the next 6 weeks, videos with no date yet, what's next, and upcoming seasons.
+- **Ideas:** save your own ideas or brainstorm them with Claude; star favourites; *Plan it* turns an idea into a video,
+  on an open calendar slot or with no date yet.
 - **Backup** downloads everything as a file; **Restore** loads one back.
 - Open it on your PC and your phone. Coming back to a tab picks up changes made on the other device, and a stale tab can't
   overwrite newer changes.
@@ -50,6 +52,23 @@ Optional, for a second lock: on the Worker, **Settings → Variables and Secrets
 
 **After that,** every change pushed to that branch deploys by itself. The planner's data lives in the database, not in the
 repo, so use **Backup** now and then.
+
+## Claude ideas (connect once)
+
+The **Ideas** tab's *Brainstorm* button asks Claude for video ideas that fit the channel: each comes with the concept, a
+hook, three titles (with character counts), a thumbnail headline, why now, and what archival images likely exist. Claude
+sees your list of videos and saved ideas, so it doesn't repeat them. It uses Claude Opus 5.5; a brainstorm costs roughly
+10–20 cents. If a request is ever declined by a safety check, it's retried automatically on a suitable fallback model.
+
+To connect it:
+1. Go to https://platform.claude.com and sign in (a separate account from your Claude subscription is fine; API use is
+   billed separately).
+2. **Billing:** add a few dollars of credit. Optional but wise: under **Limits**, set a monthly spend limit (e.g. $10).
+3. **API keys → Create key**, name it `chunk-planner`, and copy it (it's shown only once).
+4. In Cloudflare, open the **chunk-planner** Worker → **Settings → Variables and Secrets → Add**. Type **Secret**, name
+   `ANTHROPIC_API_KEY`, paste the key, and save/deploy.
+
+The key stays inside Cloudflare; the browser never sees it. Don't paste it into chat or into a file in the repo.
 
 ## Run it on your computer (optional, for development)
 

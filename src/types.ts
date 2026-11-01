@@ -64,13 +64,22 @@ export interface ReleaseWindow {
 
 export interface Idea {
   id: string;
-  concept: string;
-  hook?: string;
+  kind: 'long' | 'short';
+  concept: string; // the idea in one line
+  hook?: string; // the cold open's first line
   titles?: string[];
-  season?: string;
+  thumbnail?: string; // 2–4 word thumbnail headline
+  whyNow?: string; // season, anniversary, or why it fits the channel now
+  archival?: string; // what real images/documents likely exist
   notes?: string;
-  createdAt: string;
+  starred?: boolean;
+  source: 'me' | 'claude';
+  videoId?: string; // set once the idea becomes a video
+  createdAt: string; // YYYY-MM-DD
 }
+
+/** An idea as Claude returns it, before it's saved. */
+export type IdeaDraft = Pick<Idea, 'kind' | 'concept' | 'hook' | 'titles' | 'thumbnail' | 'whyNow' | 'archival'>;
 
 export interface Planner {
   version: 1;

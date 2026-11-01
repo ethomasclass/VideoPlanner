@@ -2,16 +2,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Planner } from './types.ts';
 import Calendar from './components/Calendar.tsx';
 import Sidebar from './components/Sidebar.tsx';
+import Ideas from './components/Ideas.tsx';
 import { ApiError, loadPlanner, savePlanner } from './lib/api.ts';
 import { todayISO } from './lib/dates.ts';
 
 type SaveState = 'saved' | 'saving' | 'error';
+type Tab = 'calendar' | 'ideas';
+const tabFromHash = (): Tab => (location.hash === '#ideas' ? 'ideas' : 'calendar');
 
 export default function App() {
   const [planner, setPlanner] = useState<Planner | null>(null);
   const [fatal, setFatal] = useState<ApiError | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [notice, setNotice] = useState('');
+  const [tab, setTabState] = useState<Tab>(tabFromHash);
+  const setTab = (t: Tab) => {
+    history.replaceState(null, '', t === 'ideas' ? '#ideas' : location.pathname);
+    setTabState(t);
+  };
 
   // Saving: one request at a time. Changes made while a save is running are sent right after it,
   // on top of the new revision.
@@ -135,8 +143,10 @@ export default function App() {
       <header className="topbar">
         <img src="/brand/chunk-history-horizontal.svg" alt="Chunk History" className="logo" />
         <nav>
-          <button className="tab active">Calendar</button>
-          <button className="tab" disabled title="Coming next">Ideas</button>
+          <button className={`tab${tab === 'calendar' ? ' active' : ''}`} onClick={() => setTab('calendar')}>Calendar</button>
+          <button className={`tab${tab === 'ideas' ? ' active' : ''}`} onClick={() => setTab('ideas')}>
+            Ideas{planner.ideas.some((i) => !i.videoId) ? ` (${planner.ideas.filter((i) => !i.videoId).length})` : ''}
+          </button>
         </nav>
         <div className="top-actions">
           <span className={`save-state ${saveState}`}>
@@ -167,10 +177,16 @@ export default function App() {
           <button className="link" onClick={() => setNotice('')}>Dismiss</button>
         </div>
       )}
-      <main className="layout">
-        <Calendar planner={planner} update={update} />
-        <Sidebar planner={planner} />
-      </main>
+      {tab === 'calendar' ? (
+        <main className="layout">
+          <Calendar planner={planner} update={update} />
+          <Sidebar planner={planner} />
+        </main>
+      ) : (
+        <main className="layout-full">
+          <Ideas planner={planner} update={update} />
+        </main>
+      )}
     </div>
   );
 }

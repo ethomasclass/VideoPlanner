@@ -20,6 +20,13 @@ async function ensure(db: D1Database) {
 const looksLikePlanner = (p: any) =>
   p && p.version === 1 && Array.isArray(p.videos) && Array.isArray(p.releases) && p.settings && Array.isArray(p.settings.cadence);
 
+/** The current planner document (for features that need the channel's context). */
+export async function readPlanner(db: D1Database): Promise<any> {
+  await ensure(db);
+  const row = await db.prepare('SELECT data FROM planner WHERE id = 1').first<{ data: string }>();
+  return JSON.parse(row!.data);
+}
+
 export async function getPlanner(db: D1Database): Promise<Response> {
   await ensure(db);
   const row = await db.prepare('SELECT rev, data FROM planner WHERE id = 1').first<{ rev: number; data: string }>();

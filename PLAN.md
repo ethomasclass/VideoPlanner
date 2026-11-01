@@ -31,11 +31,11 @@ status and notes.
 ## The app
 
 1. **Calendar** (done): weekly slots, book or plan videos and Shorts, Monday suggestions, seasons, open-slot warnings.
-2. **Ideas list + Claude** (next): save ideas, put one on the calendar in a click. A *Brainstorm* button asks Claude for ideas
+2. **Ideas list + Claude** (done): save ideas, put one on the calendar in a click. A *Brainstorm* button asks Claude for ideas
    for a month, theme or season (concept, hook, 3 titles, a thumbnail headline, why now), using the channel's own rules: a
    question or paradox in 2–4 words, "would I click at 11 PM?", hook first, no modern politicians. Also: upcoming round-number
    anniversaries, and hooks for Monday Shorts. The API key is stored as a Cloudflare secret, never in the browser.
-3. **Video page:** titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
+3. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
 4. **Later, maybe:** YouTube upload scheduling, a nightly backup into the repo.
 
 ## How it's built
