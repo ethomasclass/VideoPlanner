@@ -7,6 +7,17 @@ export async function fetchYouTube(sync = false): Promise<YouTubeData> {
   return res.json();
 }
 
+export async function disconnectAnalytics(): Promise<YouTubeData> {
+  const res = await fetch('/api/youtube/disconnect', { method: 'POST' });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? res.statusText);
+  return res.json();
+}
+
+const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+/** The weekday a video went live in US Eastern time (where most North American viewers are). */
+export const easternWeekday = (v: YTVideo) =>
+  WEEKDAY.indexOf(new Date(v.publishedAt).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short' }));
+
 /** The local calendar day a video went live. */
 export const ytDay = (v: YTVideo) => toISO(new Date(v.publishedAt));
 export const ytUrl = (v: YTVideo) => (v.isShort ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`);

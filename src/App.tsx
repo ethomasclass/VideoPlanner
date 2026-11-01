@@ -8,7 +8,7 @@ import Stats from './components/Stats.tsx';
 import IdeaPage from './components/IdeaPage.tsx';
 import Schedule from './components/Schedule.tsx';
 import type { YouTubeData } from './types.ts';
-import { fetchYouTube, reconcile } from './lib/youtube.ts';
+import { disconnectAnalytics, fetchYouTube, reconcile } from './lib/youtube.ts';
 import { ApiError, loadPlanner, savePlanner } from './lib/api.ts';
 import { todayISO } from './lib/dates.ts';
 
@@ -252,7 +252,7 @@ export default function App() {
         </main>
       ) : (
         <main className="layout-full">
-          <Stats planner={planner} update={update} yt={yt} ytError={ytError} syncing={ytSyncing} onSync={() => loadYouTube(true)} />
+          <Stats planner={planner} update={update} yt={yt} ytError={ytError} syncing={ytSyncing} onSync={() => loadYouTube(true)} onDisconnect={async () => setYt(await disconnectAnalytics())} />
         </main>
       )}
     </div>

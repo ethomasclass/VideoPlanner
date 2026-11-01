@@ -11,6 +11,7 @@ interface Props {
   ytError: string;
   syncing: boolean;
   onSync: () => void;
+  onDisconnect: () => Promise<void>;
 }
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -30,7 +31,7 @@ const fmtDuration = (s: number) => (s >= 3600 ? `${Math.floor(s / 3600)}:${Strin
 type Sort = 'newest' | 'views' | 'perday';
 type Kind = 'all' | 'long' | 'short';
 
-export default function Stats({ planner, update, yt, ytError, syncing, onSync }: Props) {
+export default function Stats({ planner, update, yt, ytError, syncing, onSync, onDisconnect }: Props) {
   const [sort, setSort] = useState<Sort>('newest');
   const [kind, setKind] = useState<Kind>('all');
 
@@ -66,6 +67,13 @@ export default function Stats({ planner, update, yt, ytError, syncing, onSync }:
   }
 
   const videos = yt.videos;
+  const an = yt.analytics;
+  const av = (id: string) => (an?.connected || Object.keys(an?.videos ?? {}).length ? an?.videos[id] : undefined);
+  const hasAnalytics = !!an && Object.keys(an.videos).length > 0;
+  const longAn = videos.filter((v) => !v.isShort).map((v) => an?.videos[v.id]).filter(Boolean) as NonNullable<ReturnType<typeof av>>[];
+  const naShare = hasAnalytics
+    ? Object.values(an!.videos).reduce((a, x) => a + x.naViews, 0) / Math.max(1, Object.values(an!.videos).reduce((a, x) => a + x.views, 0))
+    : 0;
   const longs = videos.filter((v) => !v.isShort);
   const shorts = videos.filter((v) => v.isShort);
   const unmatched = videos.filter((v) => !linkedBy.has(v.id) && !skip.has(v.id));
@@ -135,7 +143,13 @@ export default function Stats({ planner, update, yt, ytError, syncing, onSync }:
         {newestTracked && (
           <Tile big={compact(newestTracked.v48)} label="FIRST 48 H" note={newestTracked.title} />
         )}
+        {hasAnalytics && longAn.length > 0 && (
+          <Tile big={`${Math.round(median(longAn.map((x) => x.avgPercent)))}%`} label="MEDIAN % VIEWED · LONG" note={`avg view ${fmtDuration(Math.round(median(longAn.map((x) => x.avgDuration))))}`} />
+        )}
+        {hasAnalytics && <Tile big={`${Math.round(naShare * 100)}%`} label="VIEWS FROM US + CANADA" note="all uploads, lifetime" />}
       </div>
+
+      <AnalyticsPanel yt={yt} onDisconnect={onDisconnect} />
 
       {unmatched.length > 0 && (
         <div className="panel">
@@ -228,6 +242,15 @@ export default function Stats({ planner, update, yt, ytError, syncing, onSync }:
                 <div><dt>48 h</dt><dd>{compact(v.v48)}</dd></div>
                 <div><dt>Likes</dt><dd>{compact(v.likes)}</dd></div>
                 <div><dt>Comments</dt><dd>{compact(v.comments)}</dd></div>
+                {av(v.id) && (
+                  <>
+                    <div><dt>Watch hrs</dt><dd>{(av(v.id)!.minutes / 60).toFixed(av(v.id)!.minutes < 600 ? 1 : 0)}</dd></div>
+                    <div><dt>Avg view</dt><dd>{fmtDuration(Math.round(av(v.id)!.avgDuration))}</dd></div>
+                    <div><dt>% viewed</dt><dd>{Math.round(av(v.id)!.avgPercent)}%</dd></div>
+                    <div><dt>Subs +</dt><dd>{av(v.id)!.subs}</dd></div>
+                    <div><dt>US + CA</dt><dd>{av(v.id)!.views ? `${Math.round((av(v.id)!.naViews / av(v.id)!.views) * 100)}%` : '–'}</dd></div>
+                  </>
+                )}
               </dl>
             </article>
           );
@@ -235,9 +258,65 @@ export default function Stats({ planner, update, yt, ytError, syncing, onSync }:
       </div>
       <p className="muted-note">
         Public numbers from YouTube, refreshed hourly. “48 h” is filled in for uploads the planner sees while they’re new.
-        Watch time, retention and click-through rate need YouTube Analytics (level 2).
+        {hasAnalytics ? ' Watch time, % viewed, subscribers and US + Canada share come from YouTube Analytics (lifetime, refreshed daily, about 2 days behind).' : ' Connect YouTube Analytics above for watch time, % viewed and where viewers are.'}
       </p>
     </section>
+  );
+}
+
+function AnalyticsPanel({ yt, onDisconnect }: { yt: YouTubeData; onDisconnect: () => Promise<void> }) {
+  const an = yt.analytics;
+  const [busy, setBusy] = useState(false);
+  if (!an) return null;
+  if (!an.configured) {
+    return (
+      <div className="panel analytics-panel">
+        <h2 className="tape small">YouTube Analytics</h2>
+        <p className="muted-note">
+          For watch time, % viewed, subscribers gained and North American views, add the <code>GOOGLE_CLIENT_ID</code> and{' '}
+          <code>GOOGLE_CLIENT_SECRET</code> secrets to the Worker (README, “YouTube Analytics”).
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="panel analytics-panel">
+      <div className="panel-head">
+        <h2 className="tape small">YouTube Analytics</h2>
+        {an.connected && (
+          <span className="mono">
+            {an.syncedAt ? `UPDATED ${ago(an.syncedAt).toUpperCase()}` : 'CONNECTED'}
+            {an.through ? ` · DATA THROUGH ${fmtShort(an.through).toUpperCase()}` : ''}
+          </span>
+        )}
+      </div>
+      {an.error && <p className="error-note">{an.error}</p>}
+      {an.connected ? (
+        <div className="actions">
+          <span className="hand small-hand">connected. watch time, % viewed, subscribers and north american views are on.</span>
+          <span className="spacer" />
+          <button
+            className="link danger"
+            disabled={busy}
+            onClick={async () => {
+              if (!confirm('Disconnect YouTube Analytics? The planner stops getting watch time and region numbers until you connect again.')) return;
+              setBusy(true);
+              await onDisconnect().finally(() => setBusy(false));
+            }}
+          >
+            Disconnect
+          </button>
+        </div>
+      ) : (
+        <>
+          <p className="muted-note">
+            Sign in once with the Google account that owns your channel. The planner gets read-only access to your analytics; it
+            can't change anything on YouTube. Google will say the app isn't verified: choose <b>Advanced → Go to Chunk Planner</b>.
+          </p>
+          <a className="primary connect-btn" href="/api/youtube/oauth/start">Connect YouTube Analytics</a>
+        </>
+      )}
+    </div>
   );
 }
 

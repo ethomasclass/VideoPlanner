@@ -41,8 +41,10 @@ status and notes.
 5. **YouTube stats, level 1** (done): public stats synced hourly, auto-linking uploads to planner videos, real
    thumbnails and views on the calendar, 48-hour views, best posting day; brainstorms see what does best.
 6. **Schedule editor and idea planning pages** (done).
-7. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
-8. **Later, maybe:** YouTube Analytics (watch time, retention, CTR) with a channel sign-in; YouTube upload scheduling, a nightly backup into the repo.
+7. **YouTube Analytics, level 2** (done): sign-in with the channel; watch time, % viewed, subscribers, US + Canada share;
+   best posting day for North American viewers by Eastern-time weekday.
+8. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
+9. **Later, maybe:** impressions and CTR from YouTube's Reporting API; YouTube upload scheduling, a nightly backup into the repo.
 
 ## How it's built
 

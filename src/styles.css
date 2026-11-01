@@ -570,3 +570,13 @@ label.link { cursor: pointer; font-size: 14px; }
   .topbar nav::-webkit-scrollbar { display: none; }
   .tab { padding: 6px 9px; font-size: 14.5px; white-space: nowrap; flex: none; }
 }
+
+/* ---- analytics ---- */
+.analytics-panel code { font-family: 'IBM Plex Mono', monospace; color: var(--teal); font-size: 12px; }
+.connect-btn { align-self: flex-start; text-decoration: none; display: inline-block; }
+.upload-nums { grid-template-columns: repeat(5, 70px); row-gap: 8px; }
+.region-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filter:disabled { opacity: 0.4; cursor: default; }
+@media (max-width: 900px) {
+  .upload-nums { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

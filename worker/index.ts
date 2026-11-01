@@ -6,8 +6,9 @@ import { brainstorm, thumbnailConcepts } from './brainstorm';
 import { AIError, providerOf, type AIEnv } from './ai';
 import { deleteImage, getImage, postImage } from './images';
 import { getYouTube, performanceSummary, syncYouTube, type YouTubeEnv } from './youtube';
+import { disconnect, finishSignIn, getAnalytics, startSignIn, syncAnalytics, type AnalyticsEnv } from './analytics';
 
-interface Env extends AccessEnv, AIEnv, YouTubeEnv {
+interface Env extends AccessEnv, AIEnv, YouTubeEnv, AnalyticsEnv {
   DB: D1Database;
   ASSETS: Fetcher;
 }
@@ -42,10 +43,19 @@ export default {
       }
     }
 
-    if (url.pathname === '/api/youtube' && request.method === 'GET') return Response.json(await getYouTube(env));
+    const youtubeData = async () => ({ ...(await getYouTube(env)), analytics: await getAnalytics(env) });
+    if (url.pathname === '/api/youtube' && request.method === 'GET') return Response.json(await youtubeData());
     if (url.pathname === '/api/youtube/sync' && request.method === 'POST') {
       await syncYouTube(env);
-      return Response.json(await getYouTube(env));
+      await syncAnalytics(env, 'manual');
+      return Response.json(await youtubeData());
+    }
+    // YouTube Analytics sign-in (full-page visits, not fetches).
+    if (url.pathname === '/api/youtube/oauth/start' && request.method === 'GET') return startSignIn(env, url.origin);
+    if (url.pathname === '/api/youtube/oauth/callback' && request.method === 'GET') return finishSignIn(env, url);
+    if (url.pathname === '/api/youtube/disconnect' && request.method === 'POST') {
+      await disconnect(env);
+      return Response.json(await youtubeData());
     }
 
     if (url.pathname === '/api/images' && request.method === 'POST') return postImage(env.DB, request);
@@ -59,6 +69,6 @@ export default {
 
   // Hourly (see [triggers] in wrangler.toml): refresh YouTube stats.
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(syncYouTube(env, true));
+    ctx.waitUntil(syncYouTube(env, true).then(() => syncAnalytics(env)));
   },
 } satisfies ExportedHandler<Env>;

@@ -19,6 +19,8 @@ export interface CadenceSlot {
 
 export interface Settings {
   cadence: CadenceSlot[];
+  /** Which viewers "best posting day" counts once Analytics is connected. */
+  dayStatsRegion?: 'all' | 'na' | 'na-mx';
 }
 
 export interface Series {
@@ -159,4 +161,25 @@ export interface YouTubeData {
   videos: YTVideo[];
   lastSync?: string;
   error?: string; // the last sync's problem, if any
+  analytics?: AnalyticsData;
+}
+
+/** Private numbers from YouTube Analytics (needs a sign-in with the channel's Google account). */
+export interface VideoAnalytics {
+  views: number;
+  minutes: number; // estimated minutes watched
+  avgDuration: number; // average view duration, seconds
+  avgPercent: number; // average percentage viewed
+  subs: number; // subscribers gained
+  naViews: number; // views from the United States and Canada
+  mxViews: number; // views from Mexico
+}
+
+export interface AnalyticsData {
+  configured: boolean; // GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET secrets are set
+  connected: boolean; // signed in, with a refresh token stored
+  syncedAt?: string;
+  through?: string; // the last day the numbers cover (YouTube Analytics runs ~2 days behind)
+  error?: string;
+  videos: Record<string, VideoAnalytics>;
 }

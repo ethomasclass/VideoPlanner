@@ -4,7 +4,7 @@ import type { CadenceSlot, Planner, SlotKind, YouTubeData } from '../types.ts';
 import { DEFAULT_CADENCE, SLOT_ORDER } from '../lib/schedule.ts';
 import { DEFAULT_SLOT_LABEL } from '../lib/ideas.ts';
 import { fromISO } from '../lib/dates.ts';
-import { perDay, ytDay } from '../lib/youtube.ts';
+import { easternWeekday, perDay, ytDay } from '../lib/youtube.ts';
 
 interface Props {
   planner: Planner;
@@ -69,10 +69,23 @@ export default function Schedule({ planner, update, yt }: Props) {
   };
 
   // How your uploads have done by the day they went live (views per day since posting, median).
+  // With Analytics connected you can count only North American viewers, by the day in US Eastern time.
+  const an = yt?.analytics;
+  const hasRegions = !!an && Object.keys(an.videos).length > 0;
+  const region = hasRegions ? (planner.settings.dayStatsRegion ?? 'na') : 'all';
+  const setRegion = (r: 'all' | 'na' | 'na-mx') => update((p) => void (p.settings.dayStatsRegion = r));
   const dayStats = (short: boolean) => {
     const vids = (yt?.videos ?? []).filter((v) => v.isShort === short && Date.now() - Date.parse(v.publishedAt) > 2 * 864e5);
     return WEEK.map((d) => {
-      const xs = vids.filter((v) => fromISO(ytDay(v)).getDay() === d).map(perDay);
+      const xs = vids
+        .filter((v) => (region === 'all' ? fromISO(ytDay(v)).getDay() : easternWeekday(v)) === d)
+        .flatMap((v) => {
+          if (region === 'all') return [perDay(v)];
+          const a = an?.videos[v.id];
+          if (!a) return [];
+          const views = a.naViews + (region === 'na-mx' ? a.mxViews : 0);
+          return [views / Math.max(1, (Date.now() - Date.parse(v.publishedAt)) / 864e5)];
+        });
       return { d, n: xs.length, m: median(xs) };
     });
   };
@@ -150,7 +163,23 @@ export default function Schedule({ planner, update, yt }: Props) {
           <p className="muted-note">Connect YouTube (Stats tab) to see which days your uploads do best.</p>
         ) : (
           <>
-            <p className="muted-note">Median views per day since posting, by the day each upload went live. With only a few uploads per day this is a hint, not a rule.</p>
+            <div className="region-row">
+              <span className="field-inline">Count views from</span>
+              <div className="filters">
+                {([['all', 'Everyone'], ['na', 'US + Canada'], ['na-mx', 'US + Canada + Mexico']] as const).map(([k, label]) => (
+                  <button key={k} className={`filter${region === k ? ' on' : ''}`} disabled={!hasRegions && k !== 'all'} onClick={() => setRegion(k)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="muted-note">
+              {region === 'all'
+                ? 'Median views per day since posting, by the day each upload went live (your local time).'
+                : `Median ${region === 'na' ? 'US + Canada' : 'US, Canada + Mexico'} views per day since posting, by the day each upload went live in US Eastern time.`}{' '}
+              {!hasRegions && 'Connect YouTube Analytics (Stats tab) to count only North American viewers. '}
+              With only a few uploads per day this is a hint, not a rule.
+            </p>
             <div className="day-bars">
               <DayBars title="Long videos" rows={longDays} max={maxLong} />
               <DayBars title="Shorts" rows={shortDays} max={maxShort} />

@@ -84,7 +84,25 @@ To connect it:
 4. In Cloudflare: the **chunk-planner** Worker → **Settings → Variables and Secrets → Add**, type **Secret**, name
    `YOUTUBE_API_KEY`, paste the key, save. The channel is set in `wrangler.toml` (`YOUTUBE_HANDLE`).
 
-Watch time, retention and click-through rate need YouTube Analytics (sign-in with your channel), a later step.
+## YouTube Analytics (connect once, free)
+
+With a one-time sign-in using the Google account that owns the channel, the Stats tab adds each upload's watch hours,
+average view duration, % viewed, subscribers gained and share of views from the US + Canada (lifetime, refreshed daily;
+YouTube Analytics runs about 2 days behind). The Schedule tab's "What your channel says" can then count only North American
+viewers (US + Canada, optionally Mexico), by the day each upload went live in US Eastern time. Access is read-only; the
+sign-in's refresh token stays in the database and never reaches the browser. Disconnect any time on the Stats tab.
+
+Setup, in the same Google Cloud project as the YouTube API key:
+1. **APIs & Services → Library → YouTube Analytics API → Enable.**
+2. **OAuth consent screen / Google Auth Platform → Get started**: app name *Chunk Planner*, audience **External**, your
+   email. Then **Audience → Publish app** (otherwise Google asks you to sign in again every 7 days; publishing just shows an
+   "unverified app" warning at sign-in: choose **Advanced → Go to Chunk Planner**).
+3. **Clients → Create client → Web application**, authorized redirect URI
+   `https://chunk-planner.fifteenminutehistory.workers.dev/api/youtube/oauth/callback`. Copy the client ID and secret.
+4. Worker secrets `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+5. Stats tab → **Connect YouTube Analytics**, sign in with the channel's account, pick the channel, allow.
+
+Impressions and click-through rate aren't in the Analytics API (only in YouTube's bulk Reporting API), so they're not here yet.
 
 ## AI ideas (connect once)
 
