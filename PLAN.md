@@ -35,8 +35,10 @@ status and notes.
    for a month, theme or season (concept, hook, 3 titles, a thumbnail headline, why now), using the channel's own rules: a
    question or paradox in 2–4 words, "would I click at 11 PM?", hook first, no modern politicians. Also: upcoming round-number
    anniversaries, and hooks for Monday Shorts. The API key is stored as a Cloudflare secret, never in the browser.
-3. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
-4. **Later, maybe:** YouTube upload scheduling, a nightly backup into the repo.
+3. **Thumbnails first** (done): thumbnail concepts lead every idea; Claude brainstorms thumbnail-first and can give 5
+   concepts per idea; upload images from phone or PC; the chosen one shows on the calendar.
+4. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
+5. **Later, maybe:** YouTube upload scheduling, a nightly backup into the repo.
 
 ## How it's built
 

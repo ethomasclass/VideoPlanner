@@ -4,6 +4,8 @@ import { STATUSES } from '../types.ts';
 import { MONTHS, addDays, fmtShort, fromISO, monthGrid, todayISO } from '../lib/dates.ts';
 import { releaseAt, slotsOn, suggestEvergreens, videoById, windowsOn, newId } from '../lib/schedule.ts';
 import SlotDialog from './SlotDialog.tsx';
+import { leadThumb } from './ThumbStrip.tsx';
+import { imageSrc } from '../lib/images.ts';
 
 interface Props {
   planner: Planner;
@@ -43,6 +45,10 @@ export default function Calendar({ planner, update }: Props) {
         video?.title ?? (promotes ? `Short from ${promotes.title}` : rel.label || 'Untitled');
       return (
         <button key={slot.kind} className={`chip ${slot.kind} ${rel.status}`} onClick={open}>
+          {(() => {
+            const img = leadThumb(video?.thumbs)?.image;
+            return img ? <img className="chip-thumb" src={imageSrc(img)} alt="" loading="lazy" /> : null;
+          })()}
           <span className="chip-tag">
             {KIND_TAG[slot.kind]} · {rel.time ?? slot.time}
             {rel.status !== 'planned' && ` · ${rel.status.toUpperCase()}`}

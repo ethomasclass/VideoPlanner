@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { CadenceSlot, Planner, Release, Video } from '../types.ts';
 import { fmtShort } from '../lib/dates.ts';
-import { longVideoOfWeek, newId, releaseAt, suggestEvergreens } from '../lib/schedule.ts';
+import { longVideoOfWeek, newId, releaseAt, suggestEvergreens, videoById } from '../lib/schedule.ts';
+import ThumbStrip from './ThumbStrip.tsx';
+import { thumbnailConcepts } from '../lib/api.ts';
 
 interface Props {
   planner: Planner;
@@ -88,6 +90,7 @@ export default function SlotDialog({ planner, date, slot, update, onClose }: Pro
   };
 
   const nothingChosen = !pick && !newTitle.trim() && !label.trim();
+  const pickedVideo = isEvergreen ? undefined : videoById(planner, pick);
 
   return (
     <div className="backdrop" onClick={onClose}>
@@ -112,6 +115,29 @@ export default function SlotDialog({ planner, date, slot, update, onClose }: Pro
             <small className="hint">★ suggested: the one that fits the season, or was promoted longest ago</small>
           )}
         </label>
+
+        {!isEvergreen && pickedVideo && (
+          <div className="field">
+            <span>Thumbnails for “{pickedVideo.title}” (★ = the one you're using)</span>
+            <ThumbStrip
+              thumbs={pickedVideo.thumbs ?? []}
+              onChange={(next) =>
+                update((p) => {
+                  const v = p.videos.find((x) => x.id === pickedVideo.id);
+                  if (v) v.thumbs = next;
+                })
+              }
+              onAskClaude={() =>
+                thumbnailConcepts({
+                  concept: [pickedVideo.title, pickedVideo.subtitle].filter(Boolean).join(': '),
+                  titles: [pickedVideo.title],
+                  kind: pickedVideo.kind,
+                  existing: (pickedVideo.thumbs ?? []).map((t) => [t.headline, t.picture].filter(Boolean).join(': ')),
+                })
+              }
+            />
+          </div>
+        )}
 
         {!isEvergreen && !pick && (
           <label className="field">

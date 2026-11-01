@@ -2,7 +2,9 @@
 // everything else is the app itself, served from the built files in dist/.
 import { checkAccess, type AccessEnv } from './access';
 import { getPlanner, putPlanner, readPlanner } from './planner';
-import { brainstorm, BrainstormError } from './brainstorm';
+import { brainstorm, thumbnailConcepts } from './brainstorm';
+import { ClaudeError } from './claude';
+import { deleteImage, getImage, postImage } from './images';
 
 interface Env extends AccessEnv {
   DB: D1Database;
@@ -25,15 +27,25 @@ export default {
       if (request.method === 'PUT') return putPlanner(env.DB, request);
       return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     }
-    if (url.pathname === '/api/brainstorm' && request.method === 'POST') {
+    if (request.method === 'POST' && (url.pathname === '/api/brainstorm' || url.pathname === '/api/thumbnails')) {
       try {
-        const body = (await request.json().catch(() => ({}))) as Parameters<typeof brainstorm>[2];
-        const ideas = await brainstorm(env.ANTHROPIC_API_KEY, await readPlanner(env.DB), body);
-        return Response.json({ ideas });
+        const body = (await request.json().catch(() => ({}))) as Record<string, any>;
+        if (url.pathname === '/api/brainstorm') {
+          return Response.json({ ideas: await brainstorm(env.ANTHROPIC_API_KEY, await readPlanner(env.DB), body) });
+        }
+        if (!body.concept) return Response.json({ error: 'No idea given.' }, { status: 400 });
+        return Response.json({ concepts: await thumbnailConcepts(env.ANTHROPIC_API_KEY, body) });
       } catch (e) {
-        if (e instanceof BrainstormError) return Response.json({ error: e.message, setup: e.setup }, { status: e.status });
+        if (e instanceof ClaudeError) return Response.json({ error: e.message, setup: e.setup }, { status: e.status });
         throw e;
       }
+    }
+
+    if (url.pathname === '/api/images' && request.method === 'POST') return postImage(env.DB, request);
+    const img = url.pathname.match(/^\/api\/images\/([0-9a-f-]{36})$/);
+    if (img) {
+      if (request.method === 'GET') return getImage(env.DB, img[1]);
+      if (request.method === 'DELETE') return deleteImage(env.DB, img[1]);
     }
     return Response.json({ error: 'Not found.' }, { status: 404 });
   },

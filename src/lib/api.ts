@@ -1,4 +1,4 @@
-import type { IdeaDraft, Planner } from '../types.ts';
+import type { IdeaDraft, Planner, ThumbDraft } from '../types.ts';
 
 export class ApiError extends Error {
   constructor(
@@ -24,13 +24,15 @@ export const loadPlanner = () => call<{ planner: Planner; rev: number }>();
 export const savePlanner = (planner: Planner, baseRev: number) =>
   call<{ rev: number }>({ method: 'PUT', body: JSON.stringify({ planner, baseRev }) }).then((r) => r.rev);
 
-export async function brainstormIdeas(req: { prompt: string; count: number; kind: 'long' | 'short' }): Promise<IdeaDraft[]> {
-  const res = await fetch('/api/brainstorm', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(res.status, body.error ?? res.statusText, body.setup);
-  return body.ideas as IdeaDraft[];
+async function postJSON<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, data.error ?? res.statusText, data.setup);
+  return data as T;
 }
+
+export const brainstormIdeas = (req: { prompt: string; count: number; kind: 'long' | 'short' }) =>
+  postJSON<{ ideas: IdeaDraft[] }>('/api/brainstorm', req).then((r) => r.ideas);
+
+export const thumbnailConcepts = (req: { concept: string; hook?: string; titles?: string[]; kind: 'long' | 'short'; existing: string[] }) =>
+  postJSON<{ concepts: ThumbDraft[] }>('/api/thumbnails', req).then((r) => r.concepts);

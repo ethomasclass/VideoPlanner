@@ -27,6 +27,17 @@ export interface Series {
   unitQuestion?: string;
 }
 
+/** A thumbnail: a concept (headline + what's in the picture), optionally with an uploaded image. */
+export interface Thumb {
+  id: string;
+  headline?: string; // 2–4 words on the orange tape
+  setup?: string; // optional small handwritten line above it
+  picture?: string; // what's in the frame
+  title?: string; // the video title it pairs with
+  image?: string; // id of an uploaded image (served from /api/images/<id>)
+  chosen?: boolean; // the one you're going with
+}
+
 export interface Video {
   id: string;
   kind: 'long' | 'short';
@@ -41,6 +52,7 @@ export interface Video {
   projectPath?: string; // folder in the style repo, e.g. projects/Diamond_Hoax
   seasons?: string[]; // release windows this video fits, e.g. ["halloween"]
   notes?: string;
+  thumbs?: Thumb[];
   publishedAt?: string; // YYYY-MM-DD, when known
 }
 
@@ -68,7 +80,8 @@ export interface Idea {
   concept: string; // the idea in one line
   hook?: string; // the cold open's first line
   titles?: string[];
-  thumbnail?: string; // 2–4 word thumbnail headline
+  thumbs?: Thumb[]; // thumbnail concepts, thumbnail first
+  thumbnail?: string; // (older ideas) a thumbnail headline
   whyNow?: string; // season, anniversary, or why it fits the channel now
   archival?: string; // what real images/documents likely exist
   notes?: string;
@@ -78,8 +91,24 @@ export interface Idea {
   createdAt: string; // YYYY-MM-DD
 }
 
-/** An idea as Claude returns it, before it's saved. */
-export type IdeaDraft = Pick<Idea, 'kind' | 'concept' | 'hook' | 'titles' | 'thumbnail' | 'whyNow' | 'archival'>;
+/** A thumbnail concept as Claude returns it. */
+export interface ThumbDraft {
+  picture: string;
+  headline: string;
+  setup: string;
+  title: string;
+}
+
+/** An idea as Claude returns it, before it's saved. Thumbnail first. */
+export interface IdeaDraft {
+  thumbnail: ThumbDraft;
+  kind: Idea['kind'];
+  concept: string;
+  hook: string;
+  titles: string[];
+  whyNow: string;
+  archival: string;
+}
 
 export interface Planner {
   version: 1;

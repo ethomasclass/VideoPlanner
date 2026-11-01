@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import type { Idea, IdeaDraft, Planner, Release, SlotKind, Video } from '../types.ts';
-import { ApiError, brainstormIdeas } from '../lib/api.ts';
+import type { Idea, IdeaDraft, Planner, Release, SlotKind, Thumb, Video } from '../types.ts';
+import { ApiError, brainstormIdeas, thumbnailConcepts } from '../lib/api.ts';
+import ThumbStrip, { ThumbFrame, leadThumb } from './ThumbStrip.tsx';
 import { addDays, fmtShort, fromISO, todayISO } from '../lib/dates.ts';
 import { newId, releaseAt, slotsOn, videoById } from '../lib/schedule.ts';
 
@@ -30,12 +31,17 @@ function openSlotsFor(p: Planner, kind: Idea['kind']) {
   return out;
 }
 
+/** Thumbnails of an idea, including the single headline older ideas had. */
+const ideaThumbs = (idea: Idea): Thumb[] =>
+  idea.thumbs ?? (idea.thumbnail ? [{ id: `${idea.id}-t`, headline: idea.thumbnail, chosen: true }] : []);
+
 function videoFromIdea(idea: Idea): Video {
-  const title = idea.titles?.[0]?.trim() || idea.concept;
+  const thumbs = ideaThumbs(idea);
+  const title = leadThumb(thumbs)?.title?.trim() || idea.titles?.[0]?.trim() || idea.concept;
+  const otherTitles = (idea.titles ?? []).filter((t) => t !== title);
   const notes = [
-    idea.titles && idea.titles.length > 1 && `Other titles: ${idea.titles.slice(1).join(' · ')}`,
+    otherTitles.length > 0 && `Other titles: ${otherTitles.join(' · ')}`,
     idea.hook && `Hook: ${idea.hook}`,
-    idea.thumbnail && `Thumbnail: ${idea.thumbnail}`,
     idea.whyNow && `Why now: ${idea.whyNow}`,
     idea.archival && `Images: ${idea.archival}`,
     idea.notes,
@@ -49,6 +55,7 @@ function videoFromIdea(idea: Idea): Video {
     subtitle: title === idea.concept ? undefined : idea.concept,
     status: 'idea',
     notes: notes || undefined,
+    thumbs: thumbs.length ? thumbs : undefined,
   };
 }
 
@@ -63,7 +70,8 @@ export default function Ideas({ planner, update }: Props) {
 
   // Your own idea
   const [ownOpen, setOwnOpen] = useState(false);
-  const [own, setOwn] = useState({ concept: '', hook: '', titles: '', notes: '', kind: 'long' as Idea['kind'] });
+  const blankOwn = { headline: '', picture: '', concept: '', hook: '', titles: '', notes: '', kind: 'long' as Idea['kind'] };
+  const [own, setOwn] = useState(blankOwn);
 
   const [filter, setFilter] = useState<'open' | 'starred' | 'used'>('open');
 
@@ -98,26 +106,34 @@ export default function Ideas({ planner, update }: Props) {
 
   const saveDrafts = (list: IdeaDraft[]) => {
     update((p) => {
-      for (const d of list) p.ideas.push({ ...d, id: newId('idea'), source: 'claude', createdAt: todayISO() });
+      for (const { thumbnail, ...d } of list) {
+        const thumb: Thumb = { ...thumbnail, setup: thumbnail.setup || undefined, title: thumbnail.title || d.titles[0], id: newId('thumb'), chosen: true };
+        p.ideas.push({ ...d, thumbs: [thumb], id: newId('idea'), source: 'claude', createdAt: todayISO() });
+      }
     });
     setDrafts((ds) => ds.filter((d) => !list.includes(d)));
   };
 
   const addOwn = () => {
     if (!own.concept.trim()) return;
+    const titles = own.titles.split('\n').map((t) => t.trim()).filter(Boolean);
+    const hasThumb = own.headline.trim() || own.picture.trim();
     update((p) => {
       p.ideas.push({
         id: newId('idea'),
         kind: own.kind,
+        thumbs: hasThumb
+          ? [{ id: newId('thumb'), headline: own.headline.trim().toUpperCase() || undefined, picture: own.picture.trim() || undefined, title: titles[0], chosen: true }]
+          : undefined,
         concept: own.concept.trim(),
         hook: own.hook.trim() || undefined,
-        titles: own.titles.split('\n').map((t) => t.trim()).filter(Boolean),
+        titles,
         notes: own.notes.trim() || undefined,
         source: 'me',
         createdAt: todayISO(),
       });
     });
-    setOwn({ concept: '', hook: '', titles: '', notes: '', kind: own.kind });
+    setOwn({ ...blankOwn, kind: own.kind });
   };
 
   const ideas = [...planner.ideas].reverse(); // newest first
@@ -185,6 +201,15 @@ export default function Ideas({ planner, update }: Props) {
             <h2 className="tape small">Add your own</h2>
             <button className="link" onClick={() => setOwnOpen(false)}>Close</button>
           </div>
+          <p className="hand small-hand">start with the thumbnail: what would make you click?</p>
+          <label className="field">
+            <span>Thumbnail headline, 2–4 words (optional)</span>
+            <input value={own.headline} onChange={(e) => setOwn({ ...own, headline: e.target.value })} placeholder="e.g. PAID FOR DIRT" />
+          </label>
+          <label className="field">
+            <span>What's in the picture (optional)</span>
+            <input value={own.picture} onChange={(e) => setOwn({ ...own, picture: e.target.value })} placeholder="the image, and who's in coral" />
+          </label>
           <label className="field">
             <span>The idea in one line</span>
             <input value={own.concept} onChange={(e) => setOwn({ ...own, concept: e.target.value })} placeholder="required" />
@@ -194,7 +219,7 @@ export default function Ideas({ planner, update }: Props) {
             <input value={own.hook} onChange={(e) => setOwn({ ...own, hook: e.target.value })} />
           </label>
           <label className="field">
-            <span>Title ideas, one per line (optional)</span>
+            <span>Titles, one per line; the first pairs with the thumbnail (optional)</span>
             <textarea rows={2} value={own.titles} onChange={(e) => setOwn({ ...own, titles: e.target.value })} />
           </label>
           <label className="field">
@@ -226,7 +251,7 @@ export default function Ideas({ planner, update }: Props) {
               <button className="link" onClick={() => setDrafts([])}>Dismiss all</button>
             </div>
             {drafts.map((d, i) => (
-              <IdeaCard key={i} idea={d} draft>
+              <IdeaCard key={i} idea={d} draft lead={{ ...d.thumbnail, setup: d.thumbnail.setup || undefined, id: `draft-${i}` }}>
                 <button className="primary small" onClick={() => saveDrafts([d])}>Save</button>
                 <button className="link" onClick={() => setDrafts((ds) => ds.filter((x) => x !== d))}>Dismiss</button>
               </IdeaCard>
@@ -262,31 +287,58 @@ export default function Ideas({ planner, update }: Props) {
   );
 }
 
-function IdeaCard({ idea, draft, children }: { idea: IdeaDraft | Idea; draft?: boolean; children?: React.ReactNode }) {
+function IdeaCard({
+  idea,
+  lead,
+  draft,
+  children,
+  extra,
+}: {
+  idea: IdeaDraft | Idea;
+  lead?: Thumb;
+  draft?: boolean;
+  children?: React.ReactNode;
+  extra?: React.ReactNode;
+}) {
   return (
     <article className={`idea-card${draft ? ' draft' : ''}`}>
-      <div className="idea-top">
-        <span className="mono">{idea.kind === 'long' ? 'LONG VIDEO' : 'SHORT'}</span>
-        {idea.thumbnail && <span className="thumb-tape">{idea.thumbnail}</span>}
+      <div className="idea-body">
+        {lead ? (
+          <div className="idea-thumb">
+            <ThumbFrame thumb={lead} />
+          </div>
+        ) : (
+          <div className="idea-thumb empty-thumb">
+            <span className="hand">no thumbnail yet</span>
+          </div>
+        )}
+        <div className="idea-text">
+          <div className="idea-top">
+            <span className="mono">{idea.kind === 'long' ? 'LONG VIDEO' : 'SHORT'}</span>
+          </div>
+          <h3 className="idea-concept">{idea.concept}</h3>
+          {idea.hook && <p className="idea-hook">“{idea.hook}”</p>}
+          {idea.titles && idea.titles.length > 0 && (
+            <ul className="idea-titles">
+              {idea.titles.map((t) => (
+                <li key={t}>
+                  {t} <span className={`mono${t.length > 60 ? ' over' : ''}`}>{t.length}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {lead?.picture && lead.image && <p className="thumb-picture">{lead.picture}</p>}
+          {(idea.whyNow || idea.archival || ('notes' in idea && idea.notes)) && (
+            <dl className="idea-meta">
+              {!lead?.image && lead?.picture && (<><dt>Picture</dt><dd>{lead.picture}</dd></>)}
+              {idea.whyNow && (<><dt>Why now</dt><dd>{idea.whyNow}</dd></>)}
+              {idea.archival && (<><dt>Images</dt><dd>{idea.archival}</dd></>)}
+              {'notes' in idea && idea.notes && (<><dt>Notes</dt><dd>{idea.notes}</dd></>)}
+            </dl>
+          )}
+        </div>
       </div>
-      <h3 className="idea-concept">{idea.concept}</h3>
-      {idea.hook && <p className="idea-hook">“{idea.hook}”</p>}
-      {idea.titles && idea.titles.length > 0 && (
-        <ul className="idea-titles">
-          {idea.titles.map((t) => (
-            <li key={t}>
-              {t} <span className={`mono${t.length > 60 ? ' over' : ''}`}>{t.length}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {(idea.whyNow || idea.archival || ('notes' in idea && idea.notes)) && (
-        <dl className="idea-meta">
-          {idea.whyNow && (<><dt>Why now</dt><dd>{idea.whyNow}</dd></>)}
-          {idea.archival && (<><dt>Images</dt><dd>{idea.archival}</dd></>)}
-          {'notes' in idea && idea.notes && (<><dt>Notes</dt><dd>{idea.notes}</dd></>)}
-        </dl>
-      )}
+      {extra}
       <div className="idea-actions">{children}</div>
     </article>
   );
@@ -294,8 +346,11 @@ function IdeaCard({ idea, draft, children }: { idea: IdeaDraft | Idea; draft?: b
 
 function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; update: Props['update'] }) {
   const [choice, setChoice] = useState('');
+  const [showThumbs, setShowThumbs] = useState(false);
   const slots = useMemo(() => openSlotsFor(planner, idea.kind), [planner, idea.kind]);
   const video = videoById(planner, idea.videoId);
+  // Once an idea is a video, its thumbnails live on the video (the calendar edits the same ones).
+  const thumbs = video ? (video.thumbs ?? []) : ideaThumbs(idea);
   const release = video && planner.releases.find((r) => r.videoId === video.id);
 
   const edit = (change: (i: Idea) => void) =>
@@ -329,8 +384,35 @@ function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; up
     });
   };
 
+  const setThumbs = (next: Thumb[]) =>
+    update((p) => {
+      const v = video && p.videos.find((x) => x.id === video.id);
+      if (v) {
+        v.thumbs = next;
+        return;
+      }
+      const i = p.ideas.find((x) => x.id === idea.id);
+      if (i) {
+        i.thumbs = next;
+        delete i.thumbnail;
+      }
+    });
+
+  const askClaude = () =>
+    thumbnailConcepts({
+      concept: idea.concept,
+      hook: idea.hook,
+      titles: idea.titles,
+      kind: idea.kind,
+      existing: thumbs.map((t) => [t.headline, t.picture].filter(Boolean).join(': ')),
+    });
+
   return (
-    <IdeaCard idea={idea}>
+    <IdeaCard
+      idea={idea}
+      lead={leadThumb(thumbs)}
+      extra={showThumbs && <ThumbStrip thumbs={thumbs} onChange={setThumbs} onAskClaude={askClaude} />}
+    >
       <button
         className={`star${idea.starred ? ' on' : ''}`}
         onClick={() => edit((i) => (i.starred = !i.starred))}
@@ -338,6 +420,9 @@ function SavedIdea({ idea, planner, update }: { idea: Idea; planner: Planner; up
         title={idea.starred ? 'Unstar' : 'Star'}
       >
         {idea.starred ? '★' : '☆'}
+      </button>
+      <button className={`link thumbs-toggle${showThumbs ? ' on' : ''}`} onClick={() => setShowThumbs(!showThumbs)}>
+        Thumbnails{thumbs.length ? ` (${thumbs.length})` : ''} {showThumbs ? '▴' : '▾'}
       </button>
       {video ? (
         <span className="planned-note">

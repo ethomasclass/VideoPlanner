@@ -15,6 +15,11 @@ It runs free on Cloudflare (a Worker with a D1 database), and only you can sign 
 - Sidebar: open long slots in the next 6 weeks, videos with no date yet, what's next, and upcoming seasons.
 - **Ideas:** save your own ideas or brainstorm them with Claude; star favourites; *Plan it* turns an idea into a video,
   on an open calendar slot or with no date yet.
+- **Thumbnails first:** every idea leads with its thumbnail (a mock of the concept in the channel's style, or a real
+  image). Claude's brainstorm pictures the thumbnail before writing titles, and *Thumbnails → ask Claude for 5 concepts*
+  gives one idea several different thumbnail + title pairs. Upload images from your phone or PC (shrunk to 1280×720
+  automatically) and ★ the one you're using; it shows on the calendar. Videos on the calendar have the same thumbnail panel
+  when you tap them.
 - **Backup** downloads everything as a file; **Restore** loads one back.
 - Open it on your PC and your phone. Coming back to a tab picks up changes made on the other device, and a stale tab can't
   overwrite newer changes.
@@ -51,7 +56,8 @@ Optional, for a second lock: on the Worker, **Settings → Variables and Secrets
 `ALLOWED_EMAILS`, value your email.
 
 **After that,** every change pushed to that branch deploys by itself. The planner's data lives in the database, not in the
-repo, so use **Backup** now and then.
+repo, so use **Backup** now and then. (Backup saves your plans, ideas and thumbnail concepts; uploaded images stay in the
+database and aren't in the backup file.)
 
 ## Claude ideas (connect once)
 
