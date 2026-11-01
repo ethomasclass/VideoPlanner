@@ -71,7 +71,8 @@ export interface ReleaseWindow {
   id: string;
   name: string;
   start: string; // MM-DD, repeats yearly
-  end: string; // MM-DD
+  end: string; // MM-DD; earlier than start means it runs over New Year (e.g. 12-20 → 01-05)
+  hidden?: boolean; // not shown on the calendar (still used for suggestions and ideas)
 }
 
 export interface Idea {

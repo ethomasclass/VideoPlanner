@@ -1,7 +1,7 @@
 import type { Planner } from '../types.ts';
 import { STATUSES } from '../types.ts';
-import { addDays, fmtShort, fromISO, todayISO } from '../lib/dates.ts';
-import { openLongSlots, unscheduled, videoById } from '../lib/schedule.ts';
+import { addDays, fmtShort, todayISO } from '../lib/dates.ts';
+import { nextOccurrence, openLongSlots, unscheduled, videoById } from '../lib/schedule.ts';
 
 const statusLabel = (id: string) => STATUSES.find((s) => s.id === id)?.label ?? id;
 
@@ -22,11 +22,8 @@ export default function Sidebar({ planner }: { planner: Planner }) {
   const horizon = addDays(today, 60);
   const upcomingWindows = planner.windows
     .map((w) => {
-      const y = fromISO(today).getFullYear();
-      let start = `${y}-${w.start}`;
-      if (`${y}-${w.end}` < today) start = `${y + 1}-${w.start}`;
-      const end = `${start.slice(0, 4)}-${w.end}`;
-      return { ...w, startDate: start, endDate: end, now: start <= today };
+      const o = nextOccurrence(w, today);
+      return { ...w, startDate: o.start, endDate: o.end, now: o.now };
     })
     .filter((w) => w.startDate <= horizon)
     .sort((a, b) => a.startDate.localeCompare(b.startDate));

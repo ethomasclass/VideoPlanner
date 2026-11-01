@@ -20,6 +20,18 @@ export function windowsOn(p: Planner, date: string): ReleaseWindow[] {
   return p.windows.filter((w) => (w.start <= w.end ? md >= w.start && md <= w.end : md >= w.start || md <= w.end));
 }
 
+/** The current or next time a yearly window happens, as real dates. */
+export function nextOccurrence(w: ReleaseWindow, today: string): { start: string; end: string; now: boolean } {
+  const y = Number(today.slice(0, 4));
+  const wraps = w.end < w.start;
+  for (const sy of [y - 1, y, y + 1]) {
+    const start = `${sy}-${w.start}`;
+    const end = `${wraps ? sy + 1 : sy}-${w.end}`;
+    if (end >= today) return { start, end, now: start <= today };
+  }
+  return { start: `${y + 1}-${w.start}`, end: `${wraps ? y + 2 : y + 1}-${w.end}`, now: false };
+}
+
 /** The long video planned for the week containing the date (Short A/B usually come from it). */
 export function longVideoOfWeek(p: Planner, date: string): Video | undefined {
   const mon = weekStart(date);

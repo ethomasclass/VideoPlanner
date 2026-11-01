@@ -3,12 +3,13 @@ import type { Planner } from './types.ts';
 import Calendar from './components/Calendar.tsx';
 import Sidebar from './components/Sidebar.tsx';
 import Ideas from './components/Ideas.tsx';
+import Seasons from './components/Seasons.tsx';
 import { ApiError, loadPlanner, savePlanner } from './lib/api.ts';
 import { todayISO } from './lib/dates.ts';
 
 type SaveState = 'saved' | 'saving' | 'error';
-type Tab = 'calendar' | 'ideas';
-const tabFromHash = (): Tab => (location.hash === '#ideas' ? 'ideas' : 'calendar');
+type Tab = 'calendar' | 'ideas' | 'seasons';
+const tabFromHash = (): Tab => (location.hash === '#ideas' ? 'ideas' : location.hash === '#seasons' ? 'seasons' : 'calendar');
 
 export default function App() {
   const [planner, setPlanner] = useState<Planner | null>(null);
@@ -17,7 +18,7 @@ export default function App() {
   const [notice, setNotice] = useState('');
   const [tab, setTabState] = useState<Tab>(tabFromHash);
   const setTab = (t: Tab) => {
-    history.replaceState(null, '', t === 'ideas' ? '#ideas' : location.pathname);
+    history.replaceState(null, '', t === 'calendar' ? location.pathname : `#${t}`);
     setTabState(t);
   };
 
@@ -147,6 +148,7 @@ export default function App() {
           <button className={`tab${tab === 'ideas' ? ' active' : ''}`} onClick={() => setTab('ideas')}>
             Ideas{planner.ideas.some((i) => !i.videoId) ? ` (${planner.ideas.filter((i) => !i.videoId).length})` : ''}
           </button>
+          <button className={`tab${tab === 'seasons' ? ' active' : ''}`} onClick={() => setTab('seasons')}>Seasons</button>
         </nav>
         <div className="top-actions">
           <span className={`save-state ${saveState}`}>
@@ -182,9 +184,13 @@ export default function App() {
           <Calendar planner={planner} update={update} />
           <Sidebar planner={planner} />
         </main>
-      ) : (
+      ) : tab === 'ideas' ? (
         <main className="layout-full">
           <Ideas planner={planner} update={update} />
+        </main>
+      ) : (
+        <main className="layout-full">
+          <Seasons planner={planner} update={update} />
         </main>
       )}
     </div>

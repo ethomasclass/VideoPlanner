@@ -3,7 +3,7 @@ import type { Idea, IdeaDraft, Planner, Release, SlotKind, Thumb, Video } from '
 import { ApiError, brainstormIdeas, thumbnailConcepts } from '../lib/api.ts';
 import ThumbStrip, { ThumbFrame, leadThumb } from './ThumbStrip.tsx';
 import { addDays, fmtShort, fromISO, todayISO } from '../lib/dates.ts';
-import { newId, releaseAt, slotsOn, videoById } from '../lib/schedule.ts';
+import { newId, nextOccurrence, releaseAt, slotsOn, videoById } from '../lib/schedule.ts';
 
 interface Props {
   planner: Planner;
@@ -78,9 +78,9 @@ export default function Ideas({ planner, update }: Props) {
   const chips = useMemo(() => {
     // The next season starting at least two weeks out: too late to plan for anything sooner.
     const from = addDays(todayISO(), 14);
-    const y = fromISO(from).getFullYear();
     const next = planner.windows
-      .map((w) => ({ w, start: `${y}-${w.start}` < from ? `${y + 1}-${w.start}` : `${y}-${w.start}` }))
+      .map((w) => ({ w, start: nextOccurrence(w, from).start }))
+      .filter((x) => x.start >= from)
       .sort((a, b) => a.start.localeCompare(b.start))[0]?.w;
     const lastMade = [...planner.videos].filter((v) => v.kind === 'long' && v.number != null).sort((a, b) => (b.number ?? 0) - (a.number ?? 0))[0];
     return [

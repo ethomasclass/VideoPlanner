@@ -110,7 +110,7 @@ export default function Calendar({ planner, update }: Props) {
         {weeks.flat().map((date) => {
           const inMonth = fromISO(date).getMonth() === ym.m;
           const past = date < today;
-          const windows = windowsOn(planner, date);
+          const windows = windowsOn(planner, date).filter((w) => !w.hidden);
           return (
             <div
               key={date}
@@ -148,9 +148,9 @@ export default function Calendar({ planner, update }: Props) {
                     <span className="agenda-num">{fromISO(date).getDate()}</span>
                   </div>
                   <div className="agenda-slots">
-                    {windowsOn(planner, date).length > 0 && (
+                    {windowsOn(planner, date).some((w) => !w.hidden) && (
                       <div className="agenda-windows">
-                        {windowsOn(planner, date).map((w) => (
+                        {windowsOn(planner, date).filter((w) => !w.hidden).map((w) => (
                           <span key={w.id} className="window">{w.name}</span>
                         ))}
                       </div>
