@@ -7,7 +7,7 @@ status and notes.
 ## Decisions (Oct 31, 2026)
 
 - **A planner, not a production tracker.** One status per video: Idea → In progress → Ready → Published.
-- **In the cloud, free:** Cloudflare Pages (the site), D1 (the database), Access (sign-in, only you). Works on PC and phone.
+- **In the cloud, free:** a Cloudflare Worker (the site and its API), D1 (the database), Access (sign-in, only you). Works on PC and phone.
 - **Claude for ideas** (an Anthropic API key, cents per brainstorm).
 - **YouTube uploads: not now.** Scheduling in YouTube Studio takes a couple of minutes; revisit once the planner is a habit.
 - **No classroom features.**
@@ -42,8 +42,8 @@ status and notes.
 
 - Vite + React + TypeScript, in the channel's look (the dark desk, Abril Fatface on orange tape, Nanum Pen notes, teal for
   anything clickable, coral only for what needs attention).
-- One Cloudflare Pages Function (`functions/api/planner.ts`) loads and saves the whole planner as one JSON document in one D1
+- One Cloudflare Worker (`worker/index.ts`) serves the app and `/api/planner` (`worker/planner.ts`), which loads and saves the whole planner as one JSON document in one D1
   row. Every save carries the revision it was based on; a stale tab gets "changed on another device" instead of overwriting.
-- `functions/api/_middleware.ts` verifies the Cloudflare Access sign-in token on every API request, so the data stays private
+- `worker/access.ts` verifies the Cloudflare Access sign-in token on every API request, so the data stays private
   even if Access were switched off by mistake. Until Access is configured, the API refuses everything.
 - Starting data (`data/seed.json`) comes from the style repo's catalog via `scripts/seed.mjs`.

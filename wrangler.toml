@@ -1,7 +1,15 @@
-# Cloudflare Pages settings. Pages reads this file on every deploy.
+# Cloudflare Worker settings. Cloudflare reads this file on every deploy.
+# "name" must match the Worker's name in the Cloudflare dashboard.
 name = "chunk-planner"
-pages_build_output_dir = "dist"
+main = "worker/index.ts"
 compatibility_date = "2026-10-01"
+
+# The built app (npm run build). /api/* always goes to the Worker; any other unknown path gets the app.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "DB"

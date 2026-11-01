@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite build && concurrently -k -n api,web -c cyan,yellow \"wrangler pages dev --port 8788\" \"vite\"",
+    "dev": "vite build && concurrently -k -n api,web -c cyan,yellow \"wrangler dev --port 8788\" \"vite\"",
     "build": "vite build",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p functions",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p worker",
     "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
