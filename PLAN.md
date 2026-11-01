@@ -38,8 +38,10 @@ status and notes.
 3. **Thumbnails first** (done): thumbnail concepts lead every idea; Claude brainstorms thumbnail-first and can give 5
    concepts per idea; upload images from phone or PC; the chosen one shows on the calendar.
 4. **Seasons** (done): add, edit, hide and delete seasons; tag the videos that fit each one.
-5. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
-6. **Later, maybe:** YouTube upload scheduling, a nightly backup into the repo.
+5. **YouTube stats, level 1** (done): public stats synced hourly, auto-linking uploads to planner videos, real
+   thumbnails and views on the calendar, 48-hour views, best posting day; brainstorms see what does best.
+6. **Video page** (next): titles (YouTube and on-screen), thumbnail ideas, status, notes, its Shorts, project folder.
+7. **Later, maybe:** YouTube Analytics (watch time, retention, CTR) with a channel sign-in; YouTube upload scheduling, a nightly backup into the repo.
 
 ## How it's built
 

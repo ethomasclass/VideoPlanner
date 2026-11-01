@@ -54,6 +54,7 @@ export interface Video {
   notes?: string;
   thumbs?: Thumb[];
   publishedAt?: string; // YYYY-MM-DD, when known
+  youtubeId?: string; // linked YouTube video (from the Stats tab)
 }
 
 export interface Release {
@@ -119,4 +120,41 @@ export interface Planner {
   releases: Release[];
   windows: ReleaseWindow[];
   ideas: Idea[];
+  ytSkip?: string[]; // YouTube video ids not to auto-link (ignored, or unlinked by you)
+}
+
+// ---- YouTube (public stats, synced by the Worker) ----
+
+export interface YTVideo {
+  id: string;
+  title: string;
+  publishedAt: string; // ISO timestamp
+  thumb: string; // URL of YouTube's thumbnail
+  duration: number; // seconds
+  isShort: boolean;
+  views: number;
+  likes?: number;
+  comments?: number;
+  /** Views when the video was 1, 2 and 7 days old (only for videos synced while that young). */
+  v24?: number | null;
+  v48?: number | null;
+  v7d?: number | null;
+}
+
+export interface YTChannel {
+  id: string;
+  title: string;
+  handle: string;
+  thumb?: string;
+  subscribers?: number;
+  views?: number;
+  videoCount?: number;
+}
+
+export interface YouTubeData {
+  configured: boolean; // a YOUTUBE_API_KEY secret is set
+  channel?: YTChannel;
+  videos: YTVideo[];
+  lastSync?: string;
+  error?: string; // the last sync's problem, if any
 }

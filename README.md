@@ -62,6 +62,24 @@ Optional, for a second lock: on the Worker, **Settings → Variables and Secrets
 repo, so use **Backup** now and then. (Backup saves your plans, ideas and thumbnail concepts; uploaded images stay in the
 database and aren't in the backup file.)
 
+## YouTube stats (connect once, free)
+
+The **Stats** tab shows your channel's public numbers from YouTube (subscribers, total views, and every upload with its
+date, real thumbnail, length, views, views per day, likes and comments), refreshed every hour by the Worker. Uploads link to
+the videos in your planner: confident matches link themselves and are marked published on the day they went live; the rest
+wait in *Link to your planner* (pick a video, add it as a new one, or ignore it). Linked videos show their real thumbnail
+and view count on the calendar, and past uploads fill in the calendar's history. For uploads the planner sees while new, it
+records views at 48 hours. The AI brainstorm also sees which videos do best.
+
+To connect it:
+1. Open https://console.cloud.google.com and pick or create a project (e.g. *chunk-planner*).
+2. **APIs & Services → Library**, search **YouTube Data API v3**, click **Enable**.
+3. **APIs & Services → Credentials → Create credentials → API key**. (Optional: restrict it to YouTube Data API v3.)
+4. In Cloudflare: the **chunk-planner** Worker → **Settings → Variables and Secrets → Add**, type **Secret**, name
+   `YOUTUBE_API_KEY`, paste the key, save. The channel is set in `wrangler.toml` (`YOUTUBE_HANDLE`).
+
+Watch time, retention and click-through rate need YouTube Analytics (sign-in with your channel), a later step.
+
 ## AI ideas (connect once)
 
 The **Ideas** tab's *Brainstorm* button and *ask … for 5 concepts* use an AI: **Gemini** (free tier) or **Claude** (paid

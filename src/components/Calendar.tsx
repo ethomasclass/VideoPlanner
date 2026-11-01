@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { CadenceSlot, Planner } from '../types.ts';
+import type { CadenceSlot, Planner, YouTubeData, YTVideo } from '../types.ts';
+import { compact, ytDay, ytUrl } from '../lib/youtube.ts';
 import { STATUSES } from '../types.ts';
 import { MONTHS, addDays, fmtShort, fromISO, monthGrid, todayISO } from '../lib/dates.ts';
 import { releaseAt, slotsOn, suggestEvergreens, videoById, windowsOn, newId } from '../lib/schedule.ts';
@@ -10,17 +11,24 @@ import { imageSrc } from '../lib/images.ts';
 interface Props {
   planner: Planner;
   update: (change: (draft: Planner) => void) => void;
+  yt?: YouTubeData | null;
 }
 
 const KIND_TAG = { long: 'LONG', shortA: 'SHORT A', shortB: 'SHORT B', evergreen: 'EVERGREEN' } as const;
 
-export default function Calendar({ planner, update }: Props) {
+export default function Calendar({ planner, update, yt }: Props) {
   const now = fromISO(todayISO());
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [editing, setEditing] = useState<{ date: string; slot: CadenceSlot } | null>(null);
 
   const weeks = useMemo(() => monthGrid(ym.y, ym.m), [ym]);
   const suggestions = useMemo(() => suggestEvergreens(planner, weeks.flat()), [planner, weeks]);
+  const ytById = useMemo(() => new Map((yt?.videos ?? []).map((v) => [v.id, v])), [yt]);
+  const ytByDay = useMemo(() => {
+    const m = new Map<string, YTVideo[]>();
+    for (const v of yt?.videos ?? []) m.set(ytDay(v), [...(m.get(ytDay(v)) ?? []), v]);
+    return m;
+  }, [yt]);
   const today = todayISO();
   const soon = addDays(today, 14);
 
@@ -47,11 +55,14 @@ export default function Calendar({ planner, update }: Props) {
         <button key={slot.kind} className={`chip ${slot.kind} ${rel.status}`} onClick={open}>
           {(() => {
             const img = leadThumb(video?.thumbs)?.image;
-            return img ? <img className="chip-thumb" src={imageSrc(img)} alt="" loading="lazy" /> : null;
+            const ytv = video?.youtubeId ? ytById.get(video.youtubeId) : undefined;
+            const src = img ? imageSrc(img) : slot.kind === 'long' ? ytv?.thumb : undefined;
+            return src ? <img className="chip-thumb" src={src} alt="" loading="lazy" /> : null;
           })()}
           <span className="chip-tag">
             {KIND_TAG[slot.kind]} · {rel.time ?? slot.time}
             {rel.status !== 'planned' && ` · ${rel.status.toUpperCase()}`}
+            {video?.youtubeId && ytById.has(video.youtubeId) && ` · ${compact(ytById.get(video.youtubeId)!.views)} VIEWS`}
           </span>
           <span className="chip-title">{title}</span>
           {video && (video.status === 'idea' || video.status === 'in-progress') && (
@@ -77,18 +88,30 @@ export default function Calendar({ planner, update }: Props) {
       );
     }
 
-    const urgent = slot.kind === 'long' && !past && date <= soon;
+    if (past) return null; // an empty slot in the past is just clutter
+    const urgent = slot.kind === 'long' && date <= soon;
     return (
       <button
         key={slot.kind}
         className={`chip empty${urgent ? ' urgent' : ''}`}
         onClick={open}
-        disabled={past}
       >
         + {slot.label.toLowerCase()}
       </button>
     );
   };
+
+  // Uploads YouTube shows on this day that aren't already a release chip on the calendar.
+  const renderUploads = (date: string) =>
+    (ytByDay.get(date) ?? [])
+      .filter((v) => !planner.releases.some((r) => r.date === date && videoById(planner, r.videoId)?.youtubeId === v.id))
+      .map((v) => (
+        <a key={v.id} className={`chip yt-chip${v.isShort ? ' short' : ''}`} href={ytUrl(v)} target="_blank" rel="noreferrer" title={v.title}>
+          {!v.isShort && <img className="chip-thumb" src={v.thumb} alt="" loading="lazy" />}
+          <span className="chip-tag">{v.isShort ? 'SHORT' : 'LONG'} · LIVE · {compact(v.views)} VIEWS</span>
+          <span className="chip-title">{v.title}</span>
+        </a>
+      ));
 
   return (
     <section className="calendar">
@@ -128,6 +151,7 @@ export default function Calendar({ planner, update }: Props) {
                 )}
               </div>
               {slotsOn(planner, date).map((slot) => renderSlot(date, slot))}
+{renderUploads(date)}
             </div>
           );
         })}
@@ -136,7 +160,7 @@ export default function Calendar({ planner, update }: Props) {
       {/* Phones: the same slots as a week-by-week list (CSS shows one or the other). */}
       <div className="agenda">
         {weeks.map((week) => {
-          const days = week.filter((d) => fromISO(d).getMonth() === ym.m && slotsOn(planner, d).length > 0);
+          const days = week.filter((d) => fromISO(d).getMonth() === ym.m && (slotsOn(planner, d).length > 0 || ytByDay.has(d)));
           if (days.length === 0) return null;
           return (
             <div key={week[0]} className="agenda-week">
@@ -156,6 +180,7 @@ export default function Calendar({ planner, update }: Props) {
                       </div>
                     )}
                     {slotsOn(planner, date).map((slot) => renderSlot(date, slot))}
+{renderUploads(date)}
                   </div>
                 </div>
               ))}

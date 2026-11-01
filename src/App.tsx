@@ -4,12 +4,16 @@ import Calendar from './components/Calendar.tsx';
 import Sidebar from './components/Sidebar.tsx';
 import Ideas from './components/Ideas.tsx';
 import Seasons from './components/Seasons.tsx';
+import Stats from './components/Stats.tsx';
+import type { YouTubeData } from './types.ts';
+import { fetchYouTube, reconcile } from './lib/youtube.ts';
 import { ApiError, loadPlanner, savePlanner } from './lib/api.ts';
 import { todayISO } from './lib/dates.ts';
 
 type SaveState = 'saved' | 'saving' | 'error';
-type Tab = 'calendar' | 'ideas' | 'seasons';
-const tabFromHash = (): Tab => (location.hash === '#ideas' ? 'ideas' : location.hash === '#seasons' ? 'seasons' : 'calendar');
+type Tab = 'calendar' | 'ideas' | 'seasons' | 'stats';
+const TABS: Tab[] = ['calendar', 'ideas', 'seasons', 'stats'];
+const tabFromHash = (): Tab => TABS.find((t) => `#${t}` === location.hash) ?? 'calendar';
 
 export default function App() {
   const [planner, setPlanner] = useState<Planner | null>(null);
@@ -17,6 +21,9 @@ export default function App() {
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [notice, setNotice] = useState('');
   const [tab, setTabState] = useState<Tab>(tabFromHash);
+  const [yt, setYt] = useState<YouTubeData | null>(null);
+  const [ytError, setYtError] = useState('');
+  const [ytSyncing, setYtSyncing] = useState(false);
   const setTab = (t: Tab) => {
     history.replaceState(null, '', t === 'calendar' ? location.pathname : `#${t}`);
     setTabState(t);
@@ -81,8 +88,29 @@ export default function App() {
     [flush],
   );
 
+  const loadYouTube = useCallback(async (sync = false) => {
+    if (sync) setYtSyncing(true);
+    try {
+      setYt(await fetchYouTube(sync));
+      setYtError('');
+    } catch (e) {
+      setYtError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setYtSyncing(false);
+    }
+  }, []);
+
+  // Once both are loaded (and after every YouTube refresh), link confident matches and mark published videos.
+  const plannerReady = planner !== null;
+  useEffect(() => {
+    if (!yt || !current.current) return;
+    const change = reconcile(current.current, yt);
+    if (change) update(change);
+  }, [yt, plannerReady, update]);
+
   useEffect(() => {
     reload();
+    loadYouTube();
     // Coming back to the tab picks up changes made on another device.
     const onVisible = () => {
       if (document.visibilityState === 'visible' && !inFlight.current && !pending.current) reload();
@@ -149,6 +177,7 @@ export default function App() {
             Ideas{planner.ideas.some((i) => !i.videoId) ? ` (${planner.ideas.filter((i) => !i.videoId).length})` : ''}
           </button>
           <button className={`tab${tab === 'seasons' ? ' active' : ''}`} onClick={() => setTab('seasons')}>Seasons</button>
+          <button className={`tab${tab === 'stats' ? ' active' : ''}`} onClick={() => setTab('stats')}>Stats</button>
         </nav>
         <div className="top-actions">
           <span className={`save-state ${saveState}`}>
@@ -181,16 +210,20 @@ export default function App() {
       )}
       {tab === 'calendar' ? (
         <main className="layout">
-          <Calendar planner={planner} update={update} />
+          <Calendar planner={planner} update={update} yt={yt} />
           <Sidebar planner={planner} />
         </main>
       ) : tab === 'ideas' ? (
         <main className="layout-full">
           <Ideas planner={planner} update={update} />
         </main>
-      ) : (
+      ) : tab === 'seasons' ? (
         <main className="layout-full">
           <Seasons planner={planner} update={update} />
+        </main>
+      ) : (
+        <main className="layout-full">
+          <Stats planner={planner} update={update} yt={yt} ytError={ytError} syncing={ytSyncing} onSync={() => loadYouTube(true)} />
         </main>
       )}
     </div>

@@ -21,3 +21,9 @@ database_id = "af7c79d9-bb64-462f-91be-84ce6c0ecd2e"
 # Cloudflare Access (Zero Trust) for this Worker. Every /api request must carry a token signed for this app.
 ACCESS_TEAM_DOMAIN = "soft-recipe-34d1.cloudflareaccess.com"
 ACCESS_AUD = "fd10328ecb12adce8137a2a97758edcc97c0afd4eadfbe71ba301416902e40ba"
+# The channel whose public YouTube stats the Stats tab shows (needs a YOUTUBE_API_KEY secret).
+YOUTUBE_HANDLE = "@thechunkhistory"
+
+# Refresh YouTube stats every hour (at :07 past).
+[triggers]
+crons = ["7 * * * *"]

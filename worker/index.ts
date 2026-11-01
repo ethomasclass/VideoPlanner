@@ -5,8 +5,9 @@ import { getPlanner, putPlanner, readPlanner } from './planner';
 import { brainstorm, thumbnailConcepts } from './brainstorm';
 import { AIError, providerOf, type AIEnv } from './ai';
 import { deleteImage, getImage, postImage } from './images';
+import { getYouTube, performanceSummary, syncYouTube, type YouTubeEnv } from './youtube';
 
-interface Env extends AccessEnv, AIEnv {
+interface Env extends AccessEnv, AIEnv, YouTubeEnv {
   DB: D1Database;
   ASSETS: Fetcher;
 }
@@ -31,7 +32,7 @@ export default {
       try {
         const body = (await request.json().catch(() => ({}))) as Record<string, any>;
         if (url.pathname === '/api/brainstorm') {
-          return Response.json({ ideas: await brainstorm(env, await readPlanner(env.DB), body) });
+          return Response.json({ ideas: await brainstorm(env, await readPlanner(env.DB), body, await performanceSummary(env)) });
         }
         if (!body.concept) return Response.json({ error: 'No idea given.' }, { status: 400 });
         return Response.json({ concepts: await thumbnailConcepts(env, body) });
@@ -41,6 +42,12 @@ export default {
       }
     }
 
+    if (url.pathname === '/api/youtube' && request.method === 'GET') return Response.json(await getYouTube(env));
+    if (url.pathname === '/api/youtube/sync' && request.method === 'POST') {
+      await syncYouTube(env);
+      return Response.json(await getYouTube(env));
+    }
+
     if (url.pathname === '/api/images' && request.method === 'POST') return postImage(env.DB, request);
     const img = url.pathname.match(/^\/api\/images\/([0-9a-f-]{36})$/);
     if (img) {
@@ -48,5 +55,10 @@ export default {
       if (request.method === 'DELETE') return deleteImage(env.DB, img[1]);
     }
     return Response.json({ error: 'Not found.' }, { status: 404 });
+  },
+
+  // Hourly (see [triggers] in wrangler.toml): refresh YouTube stats.
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(syncYouTube(env, true));
   },
 } satisfies ExportedHandler<Env>;

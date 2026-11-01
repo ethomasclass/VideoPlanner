@@ -96,6 +96,7 @@ export async function brainstorm(
   env: AIEnv,
   planner: Planner,
   request: { prompt?: string; count?: number; kind?: 'long' | 'short' },
+  performance = '',
 ): Promise<IdeaDraft[]> {
   const count = clampCount(request.count, 6);
   const kind = request.kind === 'short' ? 'short' : 'long';
@@ -104,7 +105,7 @@ export async function brainstorm(
   const out = await askAI<{ ideas: IdeaDraft[] }>(env, {
     system: IDEAS_SYSTEM,
     schema: IDEAS_SCHEMA,
-    user: `${channelContext(planner, today)}
+    user: `${channelContext(planner, today)}${performance ? `\n\n${performance}` : ''}
 
 Give me ${count} ${kind === 'long' ? 'long-video' : 'Short'} ideas. What I'm looking for: ${ask}`,
   });
